@@ -1,0 +1,52 @@
+
+MySQL FUNCTION (사용자정의 함수) 
+
+# 기본 모양
+
+CREATE FUNCTION 'functiono name' ('parameter name', 'datatype')
+  RETURNS 'datatype' (DETERMINISTIC) -- 출력될 결과의 datatype 
+BEGIN 
+  DECLARE 'variable name' 'datatype''
+  SET
+  RETURN (Query) / 'variable name';
+END -- function은 begin으로 시작해서 end로 끝난다. 
+
+-- deterministic : 입력한 파라미터가 같다면 결과값은 항상 동일하게 나온다. 
+
+# 사용 방법 
+
+SELECT 'function name' (parameter)
+
+# 예시
+https://www.mysqltutorial.org/mysql-stored-function/
+https://www.mysqltutorial.org/mysql-if-statement/
+
+-- 쿼리 
+# 사용자정의 함수 쿼리 :
+CREATE FUNCTION CumstoemrLevel (credit Decimal(10,2)) --Decimal : 실수형 
+RETURNS VARCHAR(20) DETERMINISTIC
+BEGIN 
+		DECLARE Level VARCHAR(20);
+		IF credit > 50000 THEN
+				SET Level = 'PLATINUM';
+		ELSEIF (credit <= 50000 AND credit >= 10000) THEN
+				SET Level = 'GOLD';
+		ELSEIF credit < 10000 THEN
+				SET Level = 'SILVER';
+		END IF;
+		-- return the customer level
+		RETURN (Level);
+END; 
+
+# 사용 방법 : 
+SELECT customerName,
+			CustomerLevel(creditLimit)
+FROM customers 
+ORDER BY customerName;
+
+# LEETCODE 177를 풀어보자 
+https://leetcode.com/problems/nth-highest-salary/
+
+
+
+
