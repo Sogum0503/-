@@ -44,10 +44,12 @@ SELECT customerName,
 FROM customers 
 ORDER BY customerName;
 
-# LEETCODE 177를 풀어보자 
+--------------------------------------------------------------------------------------------
+
+# LEETCODE 177번 문제를 여러방식으로  풀어보자 
 https://leetcode.com/problems/nth-highest-salary/
 
-# 사용자 함수 써서 작성하기
+1) CASE WHEN 
 
 CREATE FUNCTION getNthHighestSalary (N INT)
 RETURNS INT
@@ -63,5 +65,29 @@ BEGIN
                     ) sub
      ); 
 END
+
+2) IF(condition, True_value, False_value)
+-- CASE보다 가독성이 좋은데 그러면 앞으로 IF문 만을 사용해야 하나?
+    --> NO, 상황에 따라서 다른 문법을 선택해야 한다.
+    --> 만약 조건이 여러개일때, 그리고 해당 조건들이 순차적으로 실행되어야 할 때는 IF문을 사용하기 어려움.
+
+CREATE FUNCTION getNthHighestSalary (N INT)
+RETURNS INT
+BEGIN 	
+	RETURN (
+    		SELECT IF (COUNT(sub.Salary)< N, NULL, MIN(sub.Salary))
+            FROM ( SELECT DISTINCT Salary 
+            		FROM Employee
+                    ORDER BY Salary DESC
+                    LIMIT N
+                    ) sub
+     ); 
+END
+
+
+
+
+
+
 
 
