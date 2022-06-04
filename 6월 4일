@@ -1,0 +1,10 @@
+
+Limit 심화
+
+SELECT * FROM table LIMIT 5, 10 # Retrieve rows 6~15
+SELECT * FROM table LIMIT 5, 1 # Retrieve rows 6 
+SELECT * FROM table LIMIT N, 1 # Retrieve rows N+1 
+= SELECT * FROM table LIMIT 1 OFFSET N
+
+LeetCode 177.Nth Highest Salary
+
