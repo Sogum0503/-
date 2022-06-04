@@ -1,0 +1,62 @@
+
+# Limit 심화
+
+SELECT * FROM table LIMIT 5, 10 # Retrieve rows 6~15
+SELECT * FROM table LIMIT 5, 1 # Retrieve rows 6 
+SELECT * FROM table LIMIT N, 1 # Retrieve rows N+1 
+= SELECT * FROM table LIMIT 1 OFFSET N
+
+----------------------------------------------------
+LeetCode 177.Nth Highest Salary 
+
+CREATE FUNCTION getNthHighestSalary(N INT)
+RETURNS INT
+BEGIN
+    RETURN (
+        SELECT DISTINCT Salary
+        FROM Employee
+        ORDER BY Salary DESC
+        LIMIT A, 1 -- N에 대한 직접적인 연산이 불가능하다. 
+    );
+END
+
+# 설명
+저 쿼리 그대로 진행하게 되면 오류가 발생함. => Parameter에 대한 직접적인 수정이 어렵기 때문 
+변수를 수정하는 SET 명령어를 사용해 해당 Parameter에 대한 재정의를 해야한다.
+ 
+CREATE FUNCTION getNthHighestSalary(N INT)
+RETURNS INT
+BEGIN
+    --DECLARE A INT;
+    SET N = N - 1; -- or SET A = N - 1; 
+    RETURN (
+        SELECT DISTINCT Salary
+        FROM Employee
+        ORDER BY Salary DESC
+        LIMIT A, 1
+    );
+END
+
+# 기존 방식이 아닌 Limit를 사용하게되면 장점 
+- 복잡하게 서브쿼리를 사용하지 않아도 됨.
+- Aggregation Function을 사용하지 않아도 됨.
+
+# 혹은 LIMIT 1 OFFSET N을 사용할 수도 있음.
+
+CREATE FUNCTION getNthHighestSalary(N INT)
+RETURNS INT
+BEGIN
+    --DECLARE A INT;
+    SET N = N - 1; -- or SET A = N - 1; 
+    RETURN (
+        SELECT DISTINCT Salary
+        FROM Employee
+        ORDER BY Salary DESC
+        LIMIT 1 OFFSET N 
+    );
+END
+
+# 해당 사용자 함수는 어떻게 사용하는가/ 
+SELECT getNthHighestSalary(5) -- 5번째로 높은 Salary 
+SELECT getNthHighestSalary(2) -- 2번째로 높은 Salary
+
