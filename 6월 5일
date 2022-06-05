@@ -1,0 +1,73 @@
+# solvesql: 온라인 쇼핑몰의 Stickiness
+
+SELECT d.order_date AS dt
+     , COUNT(DISTINCT d.customer_id) dau
+     , COUNT(DISTINCT w.customer_id) wau
+     , ROUND(COUNT(DISTINCT d.customer_id) / COUNT(DISTINCT w.customer_id), 2) stickiness
+FROM records d
+     INNER JOIN records w 
+			ON w.order_date BETWEEN DATE_ADD(d.order_date, INTERVAL -6 DAY) AND d.order_date
+WHERE d.order_date BETWEEN '2020-11-01' AND '2020-11-30'
+GROUP BY dt
+ORDER BY dt
+
+
+# Q. 서브 카테고리 별 매출액(sales)을 계산하고 그 매출액이 각 서브 카테고리(sub_category)가 속해있는 카테고리(category) 안에서 비중을 얼마나 차지하는지, 
+   그리고 전체 매출액에서 비중을 얼마나 차지하는지 각각 계산해주세요. 결과물은 아래 모양을 참고하세요.
+   
+WITH sales AS (
+  SELECT category
+       , sub_category
+       , SUM(sales) sum_sales
+  FROM records
+  GROUP BY category, sub_category
+)
+
+SELECT category
+     , sub_category
+     , sum_sales AS sales_sub_category
+     , SUM(sum_sales) OVER (PARTITION BY category) sales_category
+     , SUM(sum_sales) OVER () sales_total
+     , sum_sales / SUM(sum_sales) OVER (PARTITION BY category) pct_in_category
+     , sum_sales / SUM(sum_sales) OVER () pct_in_total
+FROM sales
+
+
+# Leetcode 185. Department Top Three Salaries
+
+SELECT Department, Employee, Salary
+FROM (
+    SELECT d.name AS Department
+         , e.name AS Employee
+         , e.salary AS Salary
+         , DENSE_RANK() OVER (PARTITION BY d.id ORDER BY e.salary DESC) AS rn
+    FROM Employee e
+         INNER JOIN Department d ON e.departmentId = d.id
+) df
+WHERE rn <= 3
+
+-----------------------------------------------------------------------------------------------------
+# solve sql 복수 국적 메달 수상한 선수 찾기
+
+select a.name
+from athletes a
+INNER JOIN records r ON a.id = r.athlete_id
+INNER JOIN games g ON r.game_id = g.id
+INNER JOIN teams t ON r.team_id = t.id
+where r.medal is not null
+and g.year >= 2000
+group by r.athlete_id
+having count(distinct t.team) >= 2
+
+
+# solve sql 할부는 몇 개월로 해드릴까요? 
+
+select payment_installments
+      , count(DISTINCT order_id) as order_count
+      , min(payment_value) as min_value
+      , max(payment_value) as max_value 
+      ,avg(payment_value) as avg_value
+from olist_order_payments_dataset
+where payment_type = 'credit_card'
+group by payment_installments
+order by payment_installments;
