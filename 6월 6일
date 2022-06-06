@@ -1,0 +1,69 @@
+solve sql 
+
+1. 복수 국적 메달 수상한 선수 찾기 
+
+SELECT a.name
+FROM records r 
+      INNER JOIN athletes a ON r.athlete_id = a.id
+      INNER JOIN games g ON r.game_id = g.id
+      INNER JOIN teams t ON r.team_id = t.id
+WHERE r.medal IS NOT NULL
+			AND g.year >= 2000
+GROUP BY r.athlete_id
+HAVING COUNT(DISTINCT t.team) >= 2
+
+1.1 회고 
+records 테이블에 다른 테이블과 매핑할 수 있는 ID(FK)가 있었기 때문에 records 테이블을 중심 테이블로 잡아줬습니다.
+
+" 2000년 이후의 메달 수상 기록만 고려했을 때, 메달을 수상한 올림픽 참가 선수 중 2개 이상의 국적으로 메달을 
+  수상한 기록이 있는 선수의 이름을 조회하는 쿼리를 작성해주세요. 조회된 선수의 이름은 오름차순으로 정렬되어 있어야 합니다" 
+
+문제의 조건을 기준으로 athletes(메달 수상 기록), games(올림픽 개최 년도), teams(국적) 테이블을 inner join을 이용해 조인을 하였습니다.
+
+해당 조건을 만족하는 데이터만 출력을 해야했기에, 성능 상 left join보다는 inner join을 사용하는 것이 좋다 생각되어 inner join을 채택했습니다.
+
+medal을 수상한 기록만을 고려해야 했기 때문에 is not null 조건을 추가하였고, having count(distinct t.team) >=2 를 이용하여 국적을 조회하였습니다.
+
++ order_id에 distinct를 사용한 이유 
+records은 매핑 테이블, 타 테이블과 1:m 관계라서 전체적인 조인을 했을 때 m의 관계가 되어 id에 중복이 있을 수 있다. 
+이에 distinct를 사용해야 한다. 
+
+
+1.2. 스터디를 진행하며...
+스터디를 진행하며 이렇게 쿼리를 작성하신 분도 계셨습니다. 
+
+select max(a.name) as name -- group by를 위해 집계함수 사용 
+from records r 
+    join athletes a on r.athlete_id = a.id
+    join games g on r.game_id = g.id
+    join teams t on r.team_id = t.id 
+where g.year >= '2000'
+group by a.id
+having count(distinct t.id) >= 2
+order by name 
+
+# group by는 group by에 올 테이블을 제외하고는 모두 집계함수가 쓰여져야 한다(ex. max/min/count/max...)
+  이에 영향을 미치지 않는 집계함수를 추가로 사용해서 선택한 컬럼을 출력할 수 있다. 
+
+# distinct t.id를 해도 team과 동일한 결과가 나올까 ? = YES 
+   - 애시당초 중복되는 값이 없는 테이블이였다...ㅎ 
+select count(distinct id)
+from teams; -- 230;
+
+select count(distinct team)
+from teams; -- 230;
+
+이런식으로 풀어 볼 수도 있구나..!! 싶었음. 
+
+2. 할부는 몇 개월로 해드릴까요?
+
+SELECT payment_installments
+      , COUNT(DISTINCT order_id) AS order_count
+      , MIN(payment_value) AS min_value
+      , MAX(payment_value) AS max_value 
+      ,AVG(payment_value) AS avg_value
+FROM olist_order_payments_dataset
+WHERE payment_type = 'credit_card'
+GROUP BY payment_installments
+ORDER BY payment_installments;
+
