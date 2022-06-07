@@ -44,4 +44,8 @@ ORDER BY 1
 
 - CASE문에서 유니크하게 COUNT를 하고싶을 땐 :
   COUNT(DISTINCT CASE WHEN....THEN...END)를 사용하자! 
+  
+- DB의 차이에 따른 PIVOT 
+  오라클 : DECODE, PIVOT, CASE WHEN
+  MySQL : CASE WHEN, IF문 을 쓰는 것이 보편적임  
 
