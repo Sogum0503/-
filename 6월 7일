@@ -11,4 +11,32 @@ FROM ga
 WHERE event_date_kst BETWEEN '2021-08-02' and '2021-08-09' 
 GROUP BY event_date_kst
 
-2. 
+2. 지역별 주문의 특징
+- 난이도 : 보통
+- 주제 : PIVOT TABLE
+
+- 정답 쿼리
+SELECT DISTINCT Region
+      , COUNT(DISTINCT CASE WHEN category = 'Furniture' THEN order_id END) AS 'Furniture'
+      , COUNT(DISTINCT CASE WHEN category = 'Office Supplies' THEN order_id END) AS 'Office Supplies'
+      , COUNT(DISTINCT CASE WHEN category = 'Technology' THEN order_id END) AS 'Technology'
+FROM records
+GROUP BY region
+ORDER BY 1
+
+- 회고와 배운점 그리고 궁금한 점
+1) 회고 
+- CASE WHEN...END를 잊지말자. 
+
+- 오라클 PIVOT TABLE로 풀어보려고 했는데 GROUP BY에 region, category가 둘 다 와야하는데 이런 상황에서는 어떻게 하지?
+
+- 복잡하지만 decode로도 풀어볼 수 있지 않을까??
+
+- ORDER_ID를 DISTINCT하게 COUNT하고싶어 CASE WHEN ... DISTINCT ORDER_ID를 했는데 Syntax에러가 났다.
+  그래서 찾아보니까 DISTINCT CASE WHEN...END로 기입해야하는걸 알게됨..! 
+  
+2) 배운점
+
+- CASE문에서 유니크하게 COUNT를 하고싶을 땐 :
+  COUNT(DISTINCT CASE WHEN....THEN...END)를 사용하자! 
+
