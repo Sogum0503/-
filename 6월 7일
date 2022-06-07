@@ -35,6 +35,11 @@ ORDER BY 1
 - ORDER_ID를 DISTINCT하게 COUNT하고싶어 CASE WHEN ... DISTINCT ORDER_ID를 했는데 Syntax에러가 났다.
   그래서 찾아보니까 DISTINCT CASE WHEN...END로 기입해야하는걸 알게됨..! 
   
+  - 사실은 문제에서 "미국의 각 지역별로 어떤 카테고리의 상품이 많이 판매되는지 알아보려고 합니다. 
+                    region, category별 주문량을 계산해 출력하는 쿼리를 작성해주세요"
+    라고해서 COUNT(order_id)가 아니라, SUM(quantity)를 계산해야 하는 줄 알았는데, 그게 아니였다.
+    문제를 읽고 해석하는 능력을 길러야겠다고 생각했다.(어렵다..) 
+  
 2) 배운점
 
 - CASE문에서 유니크하게 COUNT를 하고싶을 땐 :
