@@ -1,1 +1,80 @@
+# solve sql 문제 풀이 
+
+1. 폐쇄할 따릉이 대여소 찾기 (좀 어려웠음) 
+
+SELECT a.station_id
+      ,max(a.name) as name -- group by절을 위해서 의미없는 집계함수 추가 
+FROM station a join station b
+ON (6356 * acos (
+      cos ( radians(b.lat) )
+      * cos( radians( a.lat ) )
+      * cos( radians( a.lng ) - radians(b.lng) )
+      + sin ( radians(b.lat) )
+      * sin( radians( a.lat ) )
+    )) <= 0.3 --두 지점 간 거리가 0.3km을 조건으로 셀프조인 
+AND a.station_id != b.station_id
+GROUP BY  1 
+HAVING count(DISTINCT CASE WHEN b.updated_at > a.updated_at 
+                      THEN b.station_id END) >= 5;
+
+1.1. 회고겸 주저리 
+- 하버사인 공식을 계속 시도 해 봤는데 계속 에러가 떠서 결국 구면 코사인 공식을 사용했다.
+  레퍼런스 찾아보니까 하버사인 동일한 값을 출력해서 채택했다.
+- 셀프 조인에 조건을 걸어서 출력하는걸 거의 안해봤는데 이번 경험으로 조인 시 조건을 걸어 출력하는 방법을 터득했다.
+- 해당 쿼리에서 GROUP BY절을 사용하기 위해 의미없는 집계함수를 추가했는데, 추가하지 않아도 쿼리가 잘 돌아가서 의문이 생겼다.
+  solvesql DB에서 자동으로 전환되는 것 같다. 하지만 디폴트는 집계함수를 추가하는 것이니 유의하자.
+
+- 해당 쿼리에서 a.station_id, a.name, max(b.name) 으로 쿼리를 돌리면 잘 돌아가는데, 
+  a.stsation_id, a.name, b.name 으로 하면 에러가 났다.
+  a.station_id와 a.name이 서로 호응하는 관계라서 이렇게 출력되는 건 아닐까?라는 생각이 든다.
+  
+
+2. [어제 푼 문제를 다른 방식으로] 일별 블로그 방문자 수 집계 
+
+# 기존 
+SELECT event_date_kst AS dt
+      , COUNT(DISTINCT user_pseudo_id) AS users
+FROM ga 
+WHERE event_date_kst BETWEEN '2021-08-02' AND '2021-08-09'
+GROUP BY event_date_kst
+
+# 새로운 풀이법
+SELECT event_date_kst AS dt
+      , COUNT(DISTINCT user_pseudo_id) AS users
+FROM ga 
+WHERE event_timestamp_kst BETWEEN '2021-08-02 00:00:00' AND '2021-08-09 23:59:59' -- 시간은 보수적으로 
+AND event_name IS NOT NULL --문제 조건 중, "이벤트가 하나라도 기록 된 경우.." 충족 
+GROUP BY 1
+ORDER BY 1
+
+2.1. 회고 
+- solvesql에서는 이미 정제된 데이터를 학습자에게 제공하기 때문에 클리닝이 어느정도(혹은 꽤 많이) 완료 된 편이다. 현업에서는 
+  현업에서는 이렇게 정갈한 데이터를 이용해서 분석을 진행하기 어려울 수 있으니 앞으로 미리 보수적인(안전지향적인) 쿼리를 작성하는 것이 좋겠다.
+  ex: IS NOT NULL 
+- 시간은 항상 엄격하게. 특히 배송/구매 관련해서는 더 엄격하게 시분초까지 조건을 걸어야 원하는 데이터를 얻을 수 있다. 
+
+
+2. [어제 푼 문제를 다른 방식으로] 지역별 주문의 특징 
+
+# 기존 
+SELECT  Region
+      , COUNT(DISTINCT CASE WHEN category = 'Furniture' THEN order_id END) AS 'furniture'
+      , COUNT(DISTINCT CASE WHEN category = 'Office Supplies' THEN order_id END) AS 'Office Supplies'
+      , COUNT(DISTINCT CASE WHEN category = 'Technology' THEN order_id END) AS 'Technology'
+FROM records
+GROUP BY region
+ORDER BY 1
+
+# 새로운 풀이법 _ IF
+SELECT Region 
+      ,COUNT(IF category = "Furniture" THEN order_id END) AS "Furniture"
+      ,COUNT(IF tegory = "Office Supplies" THEN order_id END) AS "Office Supplies"
+      ,COUNT(IF     SE WHEN category = "Technology" THEN order_id END) AS "Technology" 
+ FROM records 
+ GROUP BY 1
+ ORDER BY 1
+
+
+
+
 
