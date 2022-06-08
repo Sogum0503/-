@@ -27,7 +27,9 @@ HAVING count(DISTINCT CASE WHEN b.updated_at > a.updated_at
 - 해당 쿼리에서 a.station_id, a.name, max(b.name) 으로 쿼리를 돌리면 잘 돌아가는데, 
   a.stsation_id, a.name, b.name 으로 하면 에러가 났다.
   a.station_id와 a.name이 서로 호응하는 관계라서 이렇게 출력되는 건 아닐까?라는 생각이 든다.
-  
+ 
+- MySQL에서 위도,경도 활용하여 거리 계산하기
+  https://itseminar.tistory.com/22
 
 2. [어제 푼 문제를 다른 방식으로] 일별 블로그 방문자 수 집계 
 
