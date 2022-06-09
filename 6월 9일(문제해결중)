@@ -1,0 +1,33 @@
+1. 해당 쿼리의 문제는 무엇인가?
+
+WITH sub_table AS (
+  SELECT 
+    t1.station_id AS station_id,
+    t1.name AS name,
+    2 * 6356 * asin(sqrt(pow(sin((radians(t1.lat) - radians(t2.lat)) / 2 ), 2) +
+    cos(radians(t1.lat)) * cos(radians(t2.lat)) *
+    pow(sin((radians(t1.lng) - radians(t2.lng)) / 2), 2))) AS distance
+  FROM station t1
+      INNER JOIN station t2 on t1.station_id = t2.station_id 
+  WHERE t1.updated_at < t2.updated_at)
+  
+SELECT station_id
+        ,name
+FROM sub_table 
+WHERE distance <= 0.3 
+GROUP BY station_id,name
+having count(*) >= 5
+
+
+1.1 과정 
+
+스터디원분이 해당 쿼리가 돌아가지 않는다며 도움을 요청하셨다.
+
+처음 쿼리를 봤을 때는 하버사인 공식 부분에 문제가 있는건가? 해서 이것저것 뜯어도 보고 하다가 
+WITH절 자체에 문제가 있는건 아닌가 해서 WITH절만 뜯어와서 돌려봤더니 계속 문제가 발생했다.
+
+처음 나도 해당 문제를 풀 때 SELF_JOIN시 JOIN 조건으로 station_id를 걸어놨는데 이게 문제인것 같다.
+
+확실하지는 않지만 (추가로 강사님께 여쭤볼 예정).. 
+table 1 과 table 2를 station_id로 이었을 때 조건에 해당하는 값이 나오지 않는건 아닌가 라는 생각이 있다.
+공공데이터라 테이블 관계도가 따로 없어서 추측하는거긴 하지만... 
