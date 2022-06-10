@@ -72,4 +72,19 @@ AND a.return_at BETWEEN '2021-01-01 00:00:00' AND '2021-01-31 23:59:59'
 GROUP by 1
 ORDER BY 2 DESC;
 
+4.1. 회고 및 주저리 
+
+사실 아직까지 self join때 inner/left 중 뭘 써야하는지 확실한 감이 안잡혔다. 
+누구한테 설명하라고 하면 어..! 이...!! 이너조인!!! 하고 끝날 것 같은 느낌. 
+
+해당 문제같은 경우는 left / inner 동일한 성능으로 나올거라고 예상되는데
+그 이유는 
+
+우선 질문 주신 내용은 경우에 따라 다르며, 이 문제에서는 INNER JOIN 으로 SELF JOIN 을 하는 것과 LEFT JOIN 으로 SELF JOIN 을 하는 것의 결과가 동일합니다. 
+여기에서는 person 이라는 테이블의 email 컬럼으로 SELF JOIN 을 하였는데요, joinkey로 사용되는 두 컬럼에 동일한 값이 들어있기 때문에
+INNER JOIN 과 LEFT JOIN 의 차이가 없습니다.
+
+결과가 달라지는 경우는, 들어있는 값이 다른 컬럼을 joinkey로 사용하여 SELF JOIN 을 한 경우입니다. 
+아래 참고 문서에서 관련 예시를 보실 수 있으며, 같은 조건으로 INNER JOIN 을 했을 때와 LEFT JOIN 을 했을 때 결과에 차이가 있는 것을 확인 하실 수 있습니다.
+
 
