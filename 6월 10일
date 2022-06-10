@@ -1,0 +1,44 @@
+
+1. 가구 판매의 비중이 높았던 날 찾기 
+
+# 새로운 쿼리 
+SELECT order_date
+       ,COUNT(DISTINCT CASE WHEN category = 'Furniture' THEN order_id END) AS furniture
+       , ROUND(COUNT(DISTINCT IF(category = 'Furniture', order_id, null))/COUNT(DISTINCT order_id) * 100, 2) AS furniture_pct
+FROM records
+WHERE order_date in (SELECT order_date
+                      FROM records
+                      GROUP BY 1
+                      HAVING COUNT(DISTINCT order_id) >= 10) -- 전체의 필터링 되는 로우수가 즐어들어 성ㄴ믕이 좋아짐 
+GROUP BY 1
+HAVING furniture_pct >= 40
+ORDER BY furniture_pct DESC, order_date 
+
+최대한 where절에서 필터링을 해서 필터링 해야 할 row수를 줄여주어 성능을 높인다. 
+
+# 이해해보자.
+select s.order_date as order_date 
+        , s.f as furniture
+        , round(s.f/(s.f+s.l),2) as furniture_pct
+FROM (
+      select order_date
+      , count(case when category = 'Furniture' THEN order_id end ) as f 
+      , count(case when category <> 'Furniture' THEN order_id END) as l
+      FROM records 
+      group by order_date
+      having (f_l) >= 10 
+      ) s
+ WHERE round(s.f/(s.f+s.l),2) >= 0.40
+ order by furniture_pct desc; 
+ 
+ 2. 작품이 없는 작가 찾기
+ 
+ # 새로운 쿼리 
+ SELECT aa.artist_id as artist_id
+      , aa.name as name
+ FROM artists aa 
+ WHERE aa.artist_id NOT IN 
+                        ( SELECT DISTINCT a.artist_id
+                          FROM artworks_artists as w 
+                          JOIN artists a ON a.artist_id = w.artist_id)
+        AND aa.death_year IS NOT NULL; 
