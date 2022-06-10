@@ -42,3 +42,10 @@ FROM (
                           FROM artworks_artists as w 
                           JOIN artists a ON a.artist_id = w.artist_id)
         AND aa.death_year IS NOT NULL; 
+        
+        
+3. 지역별 자전거 대여 현황 (다른 형식으로도 풀어보자)
+
+https://www.mysqltutorial.org/mysql-self-join/
+
+
