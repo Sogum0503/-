@@ -8,3 +8,15 @@
 1. [HackerRank] The PADS 
 https://www.hackerrank.com/challenges/the-pads/problem?isFullScreen=true
 
+select concat(name,'(',left(occupation,1),')')
+from Occupations
+order by name
+
+
+select concat('There are a total of ',
+              count(occupation),' ',
+              lower(occupation),
+              's.')
+from Occupations
+group by occupation
+order by count(occupation),occupation
