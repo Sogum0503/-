@@ -8,7 +8,9 @@
 1. [HackerRank] The PADS 
 https://www.hackerrank.com/challenges/the-pads/problem?isFullScreen=true
 
+- 난이도 : Medium 
 
+- 정답 쿼리 : 
 select concat(name,'(',left(occupation,1),')')
 from Occupations
 order by name
@@ -20,3 +22,39 @@ select concat('There are a total of ',
 from Occupations
 group by occupation
 order by count(occupation),occupation
+
+1.1. 회고 겸 주저리 
+해당 문제 같은 경우, 파이썬이라면 각각의 조건을 모두 만족하는 결과를 출력 할 수 있을 것 같은데
+SQL로써는 조건 1 출력, 조건 2 출력 이렇게는 가능 할 것 같으나 한꺼번에 조건1,2를 모두 만족하는 쿼리문은 어떻게 짜야하는지 고민이 있었다.
+그래서 우선은 조건 1과 2를 만족하는 쿼리문을 짜 보았고, 두개를 함께 출력해야하니까 union을 써야하나? 라는 생각이 들었다. 
+
+그런데 여기서 문제가 발생했다. 
+union과 같은 집합 연산자는 중복을 제거하기 위해 정렬 작업이 들어가게 되고, 
+두 개의 쿼리를 연속적으로 출력하기 위해 두 개의 쿼리가 추출하려는 컬럼이 모두 같아야 하는 조건이 있었기 때문이다.
+
+하지만 해당 문제에서는 정렬 작업이 들어가게 되면 문제에서 요구하는 정렬조건에 부합하지 않게 되어
+사용하기 부적절 할 것이라는 생각이 들었다.
+(실제로 wrong answer이 뜬다) 
+
+그래서 인터넷을 뒤져보니 대부분의 분들이 UNION등 집합 연산자를 사용하지 않고 쿼리와 쿼리를 합치고 잇었다.
+
+MSSQL 같은 경우는:
+쿼리
+쿼리
+로 입력하면 정답이 떴고 
+
+MySQL 같은 경우는:
+쿼리;
+쿼리;
+로 입력해야지 정답이 떴다.
+쿼리를 두개 입력하는것이니 ;를 이용해서 해당 쿼리가 끝났다는 것을 표현하지 않으면 runtime error이 떴다.
+
+[추가]
+MS SQL과 MySQL은 어떤 차이가 있을까? 싶어서 추가로 조사를 해보았다.
+
+https://hackersstudy.tistory.com/25
+
+MSSQL은 문자열을 이을 때 '+' 부호를 사용할 수 있구나..!라는 사실을 알게되었다 (무척 간단하구나..!! ) 
+
+
+
