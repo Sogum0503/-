@@ -1,0 +1,73 @@
+HACKERRANK Interview
+
+1. 우선은 contests / colleges/ challenges 테이블 잇기 
+
+select con.contest_id,
+        con.hacker_id, 
+        con.name
+from contests con 
+join colleges col on con.contest_id = col.contest_id 
+join challenges cha on  col.college_id = cha.college_id 
+
+2. 그 다음 view_stats와 submission_stars를 left join해서 잇기 
+
+inner join하여 결합된 1번과 2번을 left join하기 위해서는 challenge_id를 이용해야 하는데
+
+view_stats와 submission_stars에 중복된 challenge_id가 있다는 것을 확인함.
+
+view_stats 
+count(distinct challenge_id) = 862
+count(challenge_id) = 2000
+
+submission_stars 
+count(distinct challenge_id) = 853
+count(challenge_id) = 2000
+
+그대로 left join하게 된다면 중복된 challenge_id의 영향으로 row수가 뻥튀기 될 수 있음. 
+그렇기에 challenge_id를 기준으로 그루핑을 하여 1:0 or 1:1 관계를 가질 수 있도록 하는게 필요했음.
+
+SELECT CHALLENGE_ID
+     , SUM(TOTAL_SUBMISSIONS) TOTAL_SUBMISSIONS
+     , SUM(TOTAL_ACCEPTED_SUBMISSIONS) TOTAL_ACCEPTED_SUBMISSIONS
+  FROM SUBMISSION_STATS
+ GROUP BY CHALLENGE_ID
+;
+
+SELECT CHALLENGE_ID
+     , SUM(TOTAL_VIEWS) TOTAL_VIEWS
+     , SUM(TOTAL_UNIQUE_VIEWS) TOTAL_UNIQUE_VIEWS
+  FROM VIEW_STATS
+ GROUP BY CHALLENGE_ID
+;
+
+3. 최종 쿼리 
+SELECT A.CONTEST_ID, A.HACKER_ID, A.NAME
+     , SUM(D.TOTAL_SUBMISSIONS)
+     , SUM(D.TOTAL_ACCEPTED_SUBMISSIONS)
+     , SUM(E.TOTAL_VIEWS)
+     , SUM(E.TOTAL_UNIQUE_VIEWS)
+  FROM CONTESTS A
+     , COLLEGES B
+     , CHALLENGES C
+     , (SELECT CHALLENGE_ID
+             , SUM(TOTAL_SUBMISSIONS) TOTAL_SUBMISSIONS
+             , SUM(TOTAL_ACCEPTED_SUBMISSIONS) TOTAL_ACCEPTED_SUBMISSIONS
+          FROM SUBMISSION_STATS
+         GROUP BY CHALLENGE_ID
+       ) D
+     , (SELECT CHALLENGE_ID
+             , SUM(TOTAL_VIEWS) TOTAL_VIEWS
+             , SUM(TOTAL_UNIQUE_VIEWS) TOTAL_UNIQUE_VIEWS
+          FROM VIEW_STATS
+         GROUP BY CHALLENGE_ID
+       ) E
+ WHERE A.CONTEST_ID = B.CONTEST_ID
+   AND B.COLLEGE_ID = C.COLLEGE_ID
+   AND C.CHALLENGE_ID = D.CHALLENGE_ID(+)
+   AND C.CHALLENGE_ID = E.CHALLENGE_ID(+)
+ GROUP BY A.CONTEST_ID, A.HACKER_ID, A.NAME
+ HAVING
+       SUM(D.TOTAL_SUBMISSIONS) != 0 OR SUM(D.TOTAL_ACCEPTED_SUBMISSIONS) != 0
+    OR SUM(E.TOTAL_VIEWS) != 0 OR SUM(E.TOTAL_UNIQUE_VIEWS) != 0
+ ORDER BY CONTEST_ID
+;
