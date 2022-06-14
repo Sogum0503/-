@@ -57,3 +57,17 @@ GROUP BY 1
 
 2.2. 회고 및 주저리 
 혹시나 대략적인 문제 설명 유출 위험으로 인해 해당 회고 및 주저리는 노션에 적어두었습니다. 
+
+3. Department Highest Salary 
+
+select ms.department AS department
+    ,ms.name AS employee
+    ,ms.salary AS Salary
+from (SELECT employee.name
+                ,employee.salary 
+                ,department.name AS department
+                , MAX(salary) OVER (partition by departmentid) max_salary
+        FROM employee
+        INNER JOIN department ON employee.departmentId = department.Id) ms -- 현업에서는 from절 서브쿼리(inline view)를 가장 많이 사용한다고 함. 
+WHERE ms.salary = ms.max_salary
+
