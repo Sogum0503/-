@@ -58,7 +58,23 @@ GROUP BY 1
 2.2. 회고 및 주저리 
 혹시나 대략적인 문제 설명 유출 위험으로 인해 해당 회고 및 주저리는 노션에 적어두었습니다. 
 
-3. Department Highest Salary 
+
+3. 온라인 쇼핑몰의 Stickiness
+
+SELECT d.order_date AS dt
+     , COUNT(DISTINCT d.customer_id) dau
+     , COUNT(DISTINCT w.customer_id) wau
+     , ROUND(COUNT(DISTINCT d.customer_id) / COUNT(DISTINCT w.customer_id), 2) stickiness
+FROM records d
+     INNER JOIN records w ON w.order_date BETWEEN DATE_ADD(d.order_date, INTERVAL -6 DAY) AND d.order_date
+WHERE d.order_date BETWEEN '2020-11-01' AND '2020-11-30'
+GROUP BY dt
+ORDER BY dt
+
+3.2. 회고 및 주저리 
+혹시나 대략적인 문제 설명 유출 위험으로 인해 해당 회고 및 주저리는 노션에 적어두었습니다. 
+
+4. Department Highest Salary 
 
 select ms.department AS department
     ,ms.name AS employee
