@@ -1,0 +1,59 @@
+# solvesql 
+
+1. 월별 주문 리텐션(클래식 리텐션) 
+
+WITH records_preprocessed AS (
+    SELECT r.customer_id
+         , DATE_FORMAT(c.first_order_date, '%Y-%m-01') first_order_month
+         , DATE_FORMAT(r.order_date, '%Y-%m-01') order_month
+    FROM records r
+         INNER JOIN customer_stats c ON r.customer_id = c.customer_id
+)
+
+SELECT first_order_month
+     , COUNT(DISTINCT customer_id) month0
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 1 MONTH) = order_month THEN customer_id END) AS month1
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 2 MONTH) = order_month THEN customer_id END) AS month2
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 3 MONTH) = order_month THEN customer_id END) AS month3
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 4 MONTH) = order_month THEN customer_id END) AS month4
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 5 MONTH) = order_month THEN customer_id END) AS month5
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 6 MONTH) = order_month THEN customer_id END) AS month6
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 7 MONTH) = order_month THEN customer_id END) AS month7
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 8 MONTH) = order_month THEN customer_id END) AS month8
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 9 MONTH) = order_month THEN customer_id END) AS month9
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 10 MONTH) = order_month THEN customer_id END) AS month10
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 11 MONTH) = order_month THEN customer_id END) AS month11
+from records_preprocessed
+GROUP BY 1
+ORDER BY 1
+
+1.2. 회고 및 주저리 
+혹시나 대략적인 문제 설명 유출 위험으로 인해 해당 회고 및 주저리는 노션에 적어두었습니다. 
+
+2. 월별 주문 리텐션 (롤링 리텐션)
+
+WITH customers AS ( 
+     SELECT customer_id
+          , DATE_FORMAT(first_order_date, '%Y-%m-01') first_order_month
+          , DATE_FORMAT(last_order_date, '%Y-%m-01') last_order_month
+     FROM customer_stats c
+)
+
+SELECT first_order_month
+     , COUNT(DISTINCT customer_id) month0
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 1 MONTH) <= last_order_month THEN customer_id END) AS month1
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 2 MONTH) <= last_order_month THEN customer_id END) AS month2
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 3 MONTH) <= last_order_month THEN customer_id END) AS month3
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 4 MONTH) <= last_order_month THEN customer_id END) AS month4
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 5 MONTH) <= last_order_month THEN customer_id END) AS month5
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 6 MONTH) <= last_order_month THEN customer_id END) AS month6
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 7 MONTH) <= last_order_month THEN customer_id END) AS month7
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 8 MONTH) <= last_order_month THEN customer_id END) AS month8
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 9 MONTH) <= last_order_month THEN customer_id END) AS month9
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 10 MONTH) <= last_order_month THEN customer_id END) AS month10
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 11 MONTH) <= last_order_month THEN customer_id END) AS month11
+FROM customers
+GROUP BY 1
+
+2.2. 회고 및 주저리 
+혹시나 대략적인 문제 설명 유출 위험으로 인해 해당 회고 및 주저리는 노션에 적어두었습니다. 
