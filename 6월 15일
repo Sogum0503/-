@@ -42,7 +42,33 @@ ORDER BY 1
 
 2. [어제 푼 문제를 다른 방식으로] 온라인 쇼핑몰의 Stickiness 
 
+SELECT d.order_date as dt 
+        , COUNT(DISTINCT d.customer_id) as dau
+        , cOUNT(DISTINCT w.customer_id) as wau
+        , COALESCE(ROUND(COUNT(DISTINCT d.customer_id)/COUNT(DISTINCT w.customer_id),2),0) as stickiness 
+FROM records d 
+    LEFT JOIN records w on w.order_date BETWEEN date_add(d.order_date, INTERVAL -6 day) AND d.order_date 
+WHERE date_format(d.order_date, '%Y-%m-%d') BETWEEN '2020-11-01' AND '2020-11-31'
+GROUP BY 1
+HAVING COUNT(DISTINCT d.order_id) > 0 -- 한 번이라도 주문 한 적 있는 고객
+ORDER BY 1 
 
+2.1. 회고 겸 주저리
+- 한 번이라도 주문을 한 적 있는 고객을 count 해야하기 때문에 having을 사용해서 조건을 추가하기 
+- 문제는 데이터가 정제되어 나오기 때문에 null 관련 함수를 잘 사용하지 않는 경향이 있는데, 현업에서는 정제되지 않은 데이터를 마주 하는 일이 많기 때문에
+  NULL관련 함수와 문제에 기재되어있는 조건(ex.한 번이라도 주문 한 적 있는 고객)에 만족하는 쿼리를 짜보는 것을 습관화 하자.
+  
+2.2. NULL 관련 함수 모음 
+NVL(표현식1,표현식2)
+ISNULL(표현식1,표현식2)
+-> 표현식1의 결과 값이 NULL 이면 표현식2 의 값을 출력한다  
+   단 표현식 1과 표현식2의 결과 데이터 타입이 항상 같아야만 한다 
+   NULL 관련 함수중 가장 많이 사용한다 
 
+NULLIF(표현식1,표현식2)
+-> 표현식1이 표현식 2와같으면 NULL 을 아니면 표현식 1 값을 RETURN
+
+COALESCE(표현식1,2..)
+-> 임이의 개수의 표현식에서 NULL 값이 아닌 최초의 표현식을 나타낸다
 
 
