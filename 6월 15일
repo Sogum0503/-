@@ -1,0 +1,48 @@
+# solve sql 문제 풀이 
+
+1. [다른 방식으로 풀어보기] 월별 주문 리텐션(클래식 리텐션)
+
+WITH records_preprocessed AS (
+    SELECT r.customer_id
+         , DATE_FORMAT(c.first_order_date, '%Y-%m-01') first_order_month
+         , DATE_FORMAT(r.order_date, '%Y-%m-01') order_month
+    FROM records r
+         LEFT JOIN customer_stats c ON r.customer_id = c.customer_id
+)
+
+SELECT first_order_month
+     , COUNT(DISTINCT customer_id) month0
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 1 MONTH) = order_month THEN customer_id END) AS month1
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 2 MONTH) = order_month THEN customer_id END) AS month2
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 3 MONTH) = order_month THEN customer_id END) AS month3
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 4 MONTH) = order_month THEN customer_id END) AS month4
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 5 MONTH) = order_month THEN customer_id END) AS month5
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 6 MONTH) = order_month THEN customer_id END) AS month6
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 7 MONTH) = order_month THEN customer_id END) AS month7
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 8 MONTH) = order_month THEN customer_id END) AS month8
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 9 MONTH) = order_month THEN customer_id END) AS month9
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 10 MONTH) = order_month THEN customer_id END) AS month10
+     , COUNT(DISTINCT CASE WHEN DATE_ADD(first_order_month, INTERVAL 11 MONTH) = order_month THEN customer_id END) AS month11
+from records_preprocessed
+GROUP BY 1
+ORDER BY 1
+
+1.1. 회고겸 주저리 
+- 두 테이블에서 공통되는 데이터를 추출해야 할 때 : inner join 
+- 문제에서 each 혹은 inner join을 통해 혹시나 유실되는 데이터가 없어야 할 때는 left join을 쓰는 것이 합리적이다.
+
+1.2. 새로 배운 개념
+드라이빙 테이블/드리븐 테이블 
+- JOIN시 먼저 액세스 되어서 Access path를 주도하는 테이블
+- 즉, 조인시 먼저 액세스되는 쪽을 드라이빙 테이블(DRIVING TABLE, OUTER TABLE)이라고 하며, 
+  나중에 액세스 되는 테이블을 드리븐 테이블(DRIVEN TABLE, INNER TABLE)이라고 한다.
+- 인덱스의 존재 및 우선순위 혹은 FROM절에서의 TABLE 지정 순서에 영향을 받으며
+  어느 테이블이 먼저 엑세스되느냐에 따라 속도의 차이가 크게 날 수 있으므로 많은 양의 데이터를 다룰 때, 드라이빙 테이블은 매우 중요하다.
+  
+
+2. [어제 푼 문제를 다른 방식으로] 온라인 쇼핑몰의 Stickiness 
+
+
+
+
+
