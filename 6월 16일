@@ -1,4 +1,37 @@
-1. 페이지에서 스크롤을 내렸을까?
+1. 입문반 페이지를 본 세션 찾기
+
+# 서브쿼리
+SELECT COUNT(DISTINCT user_pseudo_id,ga_session_id) as total,
+       COUNT(DISTINCT user_pseudo_id,ga_session_id) - 
+       (SELECT COUNT(DISTINCT user_pseudo_id,ga_session_id)
+       FROM ga 
+       WHERE page_title = "백문이불여일타 SQL 캠프 입문반"
+       AND event_name = "page_view") as pv_no,
+       (SELECT COUNT(DISTINCT user_pseudo_id,ga_session_id)
+       FROM ga 
+       WHERE page_title = "백문이불여일타 SQL 캠프 입문반"
+       AND event_name = "page_view") as pv_yes
+FROM ga 
+
+# with절 
+with yesyes as (select count(distinct user_pseudo_id,ga_session_id) as yes_pv
+              from ga 
+              where page_title = "백문이불여일타 SQL 캠프 입문반"
+              and event_name = "page_view"),
+    nono as (select count(distinct user_pseudo_id,ga_session_id) as with_total
+              from ga)
+
+select with_total as total 
+      ,with_total - yes_pv as pv_no
+      ,yes_pv as pv_yes 
+from yesyes, nono
+      
+
+1.1. 회고겸 주저리 
+- 해당 문제는 서브쿼리를 사용하는 것과 with문을 사용하는 것 중에서 어느게 성능적인 면에서 우수할까?
+- https://schatz37.tistory.com/3
+
+2. 페이지에서 스크롤을 내렸을까?
 WITH PV AS (SELECT user_pseudo_id
       ,ga_session_id
       ,event_timestamp_kst
@@ -13,7 +46,6 @@ WITH PV AS (SELECT user_pseudo_id
               event_name = 'scroll')
 
 SELECT COUNT(distinct user_pseudo_id,ga_session_id) AS total 
-      
       ,(COUNT(distinct user_pseudo_id,ga_session_id)-(SELECT COUNT(distinct user_pseudo_id,ga_session_id) FROM ga WHERE page_title = '백문이불여일타 SQL 캠프 입문반' AND 
               event_name ='page_view')) AS pv_no
       
@@ -29,17 +61,4 @@ SELECT COUNT(distinct user_pseudo_id,ga_session_id) AS total
         AND PV.ga_session_id = scroll.ga_session_id
         AND PV.event_timestamp_kst <= scroll.event_timestamp_kst) AS pv_yes_scroll_yes
 FROM ga
-
-2. 입문반 페이지를 본 세션 찾기
-SELECT COUNT(DISTINCT user_pseudo_id,ga_session_id) as total,
-       COUNT(DISTINCT user_pseudo_id,ga_session_id) - 
-       (SELECT COUNT(DISTINCT user_pseudo_id,ga_session_id)
-       FROM ga 
-       WHERE page_title = "백문이불여일타 SQL 캠프 입문반"
-       AND event_name = "page_view") as pv_no,
-       (SELECT COUNT(DISTINCT user_pseudo_id,ga_session_id)
-       FROM ga 
-       WHERE page_title = "백문이불여일타 SQL 캠프 입문반"
-       AND event_name = "page_view") as pv_yes
-FROM ga 
 
