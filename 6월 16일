@@ -1,0 +1,45 @@
+1. 페이지에서 스크롤을 내렸을까?
+WITH PV AS (SELECT user_pseudo_id
+      ,ga_session_id
+      ,event_timestamp_kst
+        FROM ga
+        WHERE page_title = '백문이불여일타 SQL 캠프 입문반' AND 
+              event_name ='page_view'), scroll as(
+        SELECT user_pseudo_id
+              ,ga_session_id
+              ,event_timestamp_kst
+        FROM ga 
+        WHERE page_title = '백문이불여일타 SQL 캠프 입문반' AND
+              event_name = 'scroll')
+
+SELECT COUNT(distinct user_pseudo_id,ga_session_id) AS total 
+      
+      ,(COUNT(distinct user_pseudo_id,ga_session_id)-(SELECT COUNT(distinct user_pseudo_id,ga_session_id) FROM ga WHERE page_title = '백문이불여일타 SQL 캠프 입문반' AND 
+              event_name ='page_view')) AS pv_no
+      
+      ,(SELECT COUNT(distinct PV.user_pseudo_id,PV.ga_session_id)- COUNT(distinct scroll.user_pseudo_id, scroll.ga_session_id) as pv_yes_scroll_no
+        FROM PV
+        LEFT JOIN scroll ON PV.user_pseudo_id = scroll.user_pseudo_id
+        AND PV.ga_session_id = scroll.ga_session_id
+        AND PV.event_timestamp_kst <= scroll.event_timestamp_kst) as pv_yes_scroll_no
+      
+      ,(SELECT COUNT(distinct scroll.user_pseudo_id, scroll.ga_session_id) 
+        FROM PV
+        LEFT JOIN scroll ON PV.user_pseudo_id = scroll.user_pseudo_id
+        AND PV.ga_session_id = scroll.ga_session_id
+        AND PV.event_timestamp_kst <= scroll.event_timestamp_kst) AS pv_yes_scroll_yes
+FROM ga
+
+2. 입문반 페이지를 본 세션 찾기
+SELECT COUNT(DISTINCT user_pseudo_id,ga_session_id) as total,
+       COUNT(DISTINCT user_pseudo_id,ga_session_id) - 
+       (SELECT COUNT(DISTINCT user_pseudo_id,ga_session_id)
+       FROM ga 
+       WHERE page_title = "백문이불여일타 SQL 캠프 입문반"
+       AND event_name = "page_view") as pv_no,
+       (SELECT COUNT(DISTINCT user_pseudo_id,ga_session_id)
+       FROM ga 
+       WHERE page_title = "백문이불여일타 SQL 캠프 입문반"
+       AND event_name = "page_view") as pv_yes
+FROM ga 
+
