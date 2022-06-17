@@ -3,6 +3,7 @@
 # with + 스칼라 서브쿼리 
 = 불필요한 조인이 많아보임. 
 
+# 기존 
 WITH PV AS (SELECT user_pseudo_id
       ,ga_session_id
       ,event_timestamp_kst
@@ -32,14 +33,37 @@ SELECT COUNT(distinct user_pseudo_id,ga_session_id) AS total
         AND PV.event_timestamp_kst <= scroll.event_timestamp_kst) AS pv_yes_scroll_yes
 FROM ga
 
+# from절 join으로 풀기 (훨씬 깔끔하다) 
+WITH pv AS (SELECT user_pseudo_id
+                  , ga_session_id
+                  , event_timestamp_kst AS pv_at 
+            FROM ga
+            WHERE page_title = "백문이불여일타 SQL 캠프 입문반"
+            AND event_name = "page_view"),
+     scroll AS (SELECT user_pseudo_id
+                  , ga_session_id
+                  , event_timestamp_kst AS scroll_at
+             FROM ga
+             WHERE page_title = "백문이불여일타 SQL 캠프 입문반"
+             AND event_name = "scroll")
+             
+SELECT COUNT(DISTINCT ga.user_pseudo_id, ga.ga_session_id) as total 
+      , COUNT(DISTINCT ga.user_pseudo_id, ga.ga_session_id) - COUNT(DISTINCT pv.user_pseudo_id, pv.ga_session_id) as pv_no
+      , COUNT(DISTINCT pv.user_pseudo_id, pv.ga_session_id) - COUNT(DISTINCT scroll.user_pseudo_id, scroll.ga_session_id) pv_yes_scroll_no
+      , COUNT(DISTINCT scroll.user_pseudo_id, scroll.ga_session_id) as pv_yes_scroll_yes
+FROM ga
+      LEFT JOIN pv ON ga.user_pseudo_id = pv.user_pseudo_id 
+                  AND ga.ga_session_id = pv.ga_session-id
+      LEFT JOIN scroll on pv.user_pseudo_id = scroll.user_pseudo_id
+                  AND pv.ga_session_id = scroll.ga_session_id
+                  AND pv_at <= scroll_at 
+                  
+               
 
 2. SQL 실전반 전환율 (어려움,JOIN)
 
 WITH pv AS (select user_pseudo_id, ga_session_id, event_timestamp_kst as pv_at
-            from ga
-            where page_title = "백문이불여일타 SQL 캠프 실전반"
-            and event_name="page_view"),
-    scroll as (select user_pseudo_id, ga_session_id, event_timestamp_kst as scroll_at
+            froDselect user_pseudo_id, ga_session_id, event_timestamp_kst as scroll_at
             from ga 
             where page_title = "백문이불여일타 SQL 캠프 실전반"
             and event_name = "scroll"),
@@ -65,11 +89,49 @@ from pv
       
 
 궁금증 
-- 쿼리를 조금 더 단순하게 할 수는 없을까?
-- 왜 시간이 같아도 되는거지..? 초 까지 계산하던데 보자마자 딱 클릭할 수가 있나? 
+- 쿼리를 조금 더 단순하게 할 수는 없을까? = 약간 funnel 분석 같은 경우 정형화 되어 비슷한 쿼리를 쓰는 것 같음.. 
+- 왜 시간이 같아도 되는거지..? 초 까지 계산하던데 보자마자 딱 클릭할 수가 있나? = 빠르게 하는 사람들은 가능할거라 함 클릭하자마자 스크롤 하는 사람도 있을테니. 혹시 모를거에 대비해서 등호를 붙이는게 맞음.
 
 
 3. 유입 채널 별 실전반 전환율 (어려움,JOIN)
+WITH pv AS (SELECT user_pseudo_id
+						       , ga_session_id
+						       , event_timestamp_kst AS pv_at
+						       , source
+						       , medium
+						  FROM ga
+						  WHERE event_name = 'page_view'
+						  AND page_title = '백문이불여일타 SQL 캠프 입문반'), 
+scroll AS (SELECT user_pseudo_id
+					       , ga_session_id
+					       , event_timestamp_kst AS scroll_at
+					  FROM ga
+					  WHERE event_name = 'scroll'
+					  AND page_title = '백문이불여일타 SQL 캠프 입문반'), 
+click AS (SELECT user_pseudo_id
+				       , ga_session_id
+				       , event_timestamp_kst AS click_at
+				  FROM ga 
+				  WHERE event_name IN ('SQL_basic_form_click', 'SQL_basic_1day_form_click', 'SQL_package_form_click')
+				  )
+
+SELECT source
+     , medium
+     , COUNT(DISTINCT pv.user_pseudo_id, pv.ga_session_id) pv
+     , COUNT(DISTINCT scroll.user_pseudo_id, scroll.ga_session_id) scroll_after_pv
+     , COUNT(DISTINCT click.user_pseudo_id, click.ga_session_id) click_after_scroll
+     , COUNT(DISTINCT scroll.user_pseudo_id, scroll.ga_session_id) / COUNT(DISTINCT pv.user_pseudo_id, pv.ga_session_id) pv_scroll_rate
+     , COUNT(DISTINCT click.user_pseudo_id, click.ga_session_id) / COUNT(DISTINCT scroll.user_pseudo_id, scroll.ga_session_id) scroll_click_rate
+     , COUNT(DISTINCT click.user_pseudo_id, click.ga_session_id) / COUNT(DISTINCT pv.user_pseudo_id, pv.ga_session_id) pv_click_rate
+FROM pv
+     LEFT JOIN scroll ON pv.user_pseudo_id = scroll.user_pseudo_id
+                      AND pv.ga_session_id = scroll.ga_session_id
+                      AND pv.pv_at <= scroll.scroll_at
+     LEFT JOIN click ON scroll.user_pseudo_id = click.user_pseudo_id
+                     AND scroll.ga_session_id = click.ga_session_id
+                     AND scroll.scroll_at <= click.click_at
+GROUP BY source, medium
+ORDER BY click_after_scroll DESC, pv DESC
 
 4. 카테고리 별 매출 비율 (보통, Window Function)
 WITH sales AS (
@@ -131,3 +193,15 @@ WITH step1 AS (
 SELECT user_pseudo_id, session_start, session_end
 FROM step4
 ORDER BY session_start
+
+
+---------------------------------
+전체적인 회고
+
+이번에 풀었던 6문제는 현업에서도 자주 사용하는 문제고 새로이 푸는 것 보다 현재 쿼리를 잘 익히고 이해하는 것이 더 중요하다 판단되었음.
+술 마셔서 헤롱헤롱 거릴때도 "야 너 풀어!" 시키면 "네..."하고 풀 수 있을 정도로 테이블의 구조를 이해하고, 쿼리를 짜보는 연습을 하자.
+
+문제를 풀 때 쿼리에 집착해서 푸는 것 보단, 문제를 차근차근 읽고 테이블의 구조를 파악하며 나무가 아닌 숲을 보자.
+현업에서 일어나는 일들은 문제가 정의되지 않거나 문제에 대한 정의가 약한 경우가 많음. 
+이런 것을 파악하기 위해서는 내가 현업에서 사용하는 테이블의 구조를 잘 파악하고, 해당 서비스 혹은 시스템에 대한 이해도가 높아야 한다고 생각됨. 
+코딩 테스트용 문제는 그에 비해서 문제가 정확하게 정의되어 있기 때문에 자꾸 쿼리 자체에 집착하는 자세를 버리자. 
