@@ -1,0 +1,93 @@
+1. 페이지에서 스크롤을 내렸을까? (보통,JOIN)
+
+# with + 스칼라 서브쿼리 
+= 불필요한 조인이 많아보임. 
+
+WITH PV AS (SELECT user_pseudo_id
+      ,ga_session_id
+      ,event_timestamp_kst
+        FROM ga
+        WHERE page_title = '백문이불여일타 SQL 캠프 입문반' AND 
+              event_name ='page_view'), 
+    scroll as(SELECT user_pseudo_id
+        ,ga_session_id
+        ,event_timestamp_kst
+        FROM ga 
+        WHERE page_title = '백문이불여일타 SQL 캠프 입문반' AND
+              event_name = 'scroll')
+
+SELECT COUNT(distinct user_pseudo_id,ga_session_id) AS total 
+      ,(COUNT(distinct user_pseudo_id,ga_session_id)-(SELECT COUNT(distinct user_pseudo_id,ga_session_id) FROM ga WHERE page_title = '백문이불여일타 SQL 캠프 입문반' AND 
+              event_name ='page_view')) AS pv_no
+      ,(SELECT COUNT(distinct PV.user_pseudo_id,PV.ga_session_id)- COUNT(distinct scroll.user_pseudo_id, scroll.ga_session_id) as pv_yes_scroll_no
+        FROM PV
+        LEFT JOIN scroll ON PV.user_pseudo_id = scroll.user_pseudo_id
+        AND PV.ga_session_id = scroll.ga_session_id
+        AND PV.event_timestamp_kst <= scroll.event_timestamp_kst) as pv_yes_scroll_no
+      
+      ,(SELECT COUNT(distinct scroll.user_pseudo_id, scroll.ga_session_id) 
+        FROM PV
+        LEFT JOIN scroll ON PV.user_pseudo_id = scroll.user_pseudo_id
+        AND PV.ga_session_id = scroll.ga_session_id
+        AND PV.event_timestamp_kst <= scroll.event_timestamp_kst) AS pv_yes_scroll_yes
+FROM ga
+
+
+2. SQL 실전반 전환율 (어려움,JOIN)
+
+WITH pv AS (select user_pseudo_id, ga_session_id, event_timestamp_kst as pv_at
+            from ga
+            where page_title = "백문이불여일타 SQL 캠프 실전반"
+            and event_name="page_view"),
+    scroll as (select user_pseudo_id, ga_session_id, event_timestamp_kst as scroll_at
+            from ga 
+            where page_title = "백문이불여일타 SQL 캠프 실전반"
+            and event_name = "scroll"),
+    click as (select user_pseudo_id, ga_session_id, event_timestamp_kst as click_at
+            from ga 
+            where event_name = "SQL_advanced_form_click")
+            
+select count(distinct pv.user_pseudo_id,pv.ga_session_id) as pv
+      , count(distinct scroll.user_pseudo_id,scroll.ga_session_id) as scroll_after_pv
+      , count(distinct click.user_pseudo_id, click.ga_session_id) as click_after_scroll
+      , round(count(distinct scroll.user_pseudo_id,scroll.ga_session_id)/count(distinct pv.user_pseudo_id,pv.ga_session_id),3) as pv_scroll_rate
+      , round(count(distinct click.user_pseudo_id, click.ga_session_id)/count(distinct pv.user_pseudo_id,pv.ga_session_id),3) as pv_click_rate 
+      , round(count(distinct click.user_pseudo_id, click.ga_session_id)/count(distinct scroll.user_pseudo_id,scroll.ga_session_id),3) as scroll_click_rate
+from pv 
+      left join scroll 
+      on pv.user_pseudo_id = scroll.user_pseudo_id
+      and pv.ga_session_id = scroll.ga_session_id
+      and pv_at <= scroll_at 
+      left join click 
+      on pv.user_pseudo_id = click.user_pseudo_id
+      and pv.ga_session_id = click.ga_session_id
+      and scroll_at <= click_at
+      
+
+궁금증 
+- 쿼리를 조금 더 단순하게 할 수는 없을까?
+- 왜 시간이 같아도 되는거지..? 초 까지 계산하던데 보자마자 딱 클릭할 수가 있나? 
+
+
+3. 유입 채널 별 실전반 전환율 (어려움,JOIN)
+
+4. 카테고리 별 매출 비율 (보통, Window Function)
+WITH sales AS (
+select category
+      ,sub_category
+      , sum(sales) sum_sales
+from records
+group by category, sub_category
+)
+
+select category
+      ,sub_category
+      , round(sum_sales,2) as sales_sub_category
+      , round(sum(sum_sales) OVER (PARTITION BY category),2) sales_category 
+      , round(sum(sum_sales) OVER (),2) sales_total 
+      , round(sum_sales/sum(sum_sales) OVER (PARTITION BY category),4)*100 AS pct_in_category
+      , round(sum_sales/sum(sum_sales) OVER (),4)*100 AS pct_in_total 
+from sales
+
+
+5. 세션 재정의하기 (Window Function) 
