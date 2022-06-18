@@ -1,6 +1,6 @@
 1. 데이터리안 입문반 WEEK 2 
+https://www.notion.so/Week-2-944404a5c0384251aa1cb48aa0160ddd
 
-- 수업 관련 노트는 노션에 기재 
 - MySQL 별칭 관련 (https://www.mysqltutorial.org/mysql-alias/)
 
 - WHERE절에 Alias가 사용이 불가능한 이유 
@@ -15,3 +15,6 @@ SELECT day
 FROM tips 
 GROUP BY day 
 ORDER BY tip_revenue_pct DESC;
+
+3. RFM 분석 
+https://www.notion.so/CRM-RFM-4969b453c4694f7082e21dafe38ceae2
