@@ -1,0 +1,17 @@
+1. 데이터리안 입문반 WEEK 2 
+
+- 수업 관련 노트는 노션에 기재 
+- MySQL 별칭 관련 (https://www.mysqltutorial.org/mysql-alias/)
+
+- WHERE절에 Alias가 사용이 불가능한 이유 
+: WHERE절은 SELECT 절을 실행하기 전에 판단되기 때문에 별칭을 사용할 수 없다. 
+
+2. 식사 금액과 팁의 관계
+
+SELECT day
+      ,SUM(tip) AS tip_daily
+      ,SUM(total_bill) AS revenue_daily
+      ,SUM(tip)/SUM(total_bill)*100 AS tip_revenue_pct
+FROM tips 
+GROUP BY day 
+ORDER BY tip_revenue_pct DESC;
