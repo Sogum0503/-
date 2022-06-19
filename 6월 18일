@@ -6,6 +6,10 @@ https://www.notion.so/Week-2-944404a5c0384251aa1cb48aa0160ddd
 - WHERE절에 Alias가 사용이 불가능한 이유 
 : WHERE절은 SELECT 절을 실행하기 전에 판단되기 때문에 별칭을 사용할 수 없다. 
 
+- 쿼리문 실행 순서
+FROM -> WHERE -> GROUP BY -> HAVING -> SELECT -> ORDER BY
+
+
 2. 식사 금액과 팁의 관계
 
 SELECT day
