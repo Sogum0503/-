@@ -1,7 +1,108 @@
-
-1. Second Highest Salary 
+176 178  1050 1068 1069
+1. [176] Second Highest Salary 
 
 select max(salary) as SecondHighestSalary
 from employee
 where salary < (select max(salary)
                     from employee)
+
+2. [178] Rank Score 
+# 조건 
+- Write an SQL Query to rank the scores.
+- The scores should be ranked from the highest to the lowest.
+- if there is a tie between two socres, both should have the same ranking.
+- after a tie, the next ranking number should be the next consecutive integer value
+- return the result table ordered by score in descending order. 
+
+- 점수의 순위를 매기는 SQL 쿼리를 작성하시오
+- 점수는 가장 높은 것 부터 가장 낮은 것 까지 순위가 매겨져야 한다
+- 두 점수 사이에 동점인 경우 둘 다 순위가 같아야 한다
+- 동점 후 다음 순위 번호는 다음 연속 정수 값이어야 한다. (1,2,2,3,4..)
+- 점수에 따라 내림차순으로 정렬된 결과 테이블을 반환한다. 
+
+# 정답 쿼리 
+SELECT Score,
+        DENSE_RANK() OVER (ORDER BY Score DESC) AS 'RANK'
+FROM Scores ;
+
+2.1. 회고 및 주저리 
+- 해당 문제를 보자마자 dense_rank를 써야겠다는 생각이 들었는데, 혹시 몰라서 디스커션에 들어가니 다들 다른 형식으로 문제를 풀었던 것을 발견했다.
+  이럴 때 마다 궁금한게, 가장 쉽고 간편한 방법(이미 개발된 함수나 라이브러리를 사용)을 선택하는게 좋은지, 아니면 다양한 방식으로 문제를 풀어가려는게 좋은 것인지 궁금하다.
+  아마 베스트는, 가장 쉽고 간편한 방법으로도 풀 줄 알고, 직접 해당 하수를 사용하지 않고 풀어보는 능력도 중요하겠지?
+
+# MySQL 순위 매기는 함수 
+- RANK : 공동 순위만큼 건너뜀
+- DENSE_RANK : 공동 순위를 뛰어넘지 않음
+- ROW_NUMBER : 공동 순위를 무시함
+
+# 식 
+RANK() OVER ([PARTITION BY COL_NAME_1] ORDER BY COL_NAME_2 [DESC]) 
+DENSE_RANK() OVER ([PARTITION BY COL_NAME_1] ORDER BY COL_NAME_2 [DESC]) 
+ROW_NUMBER() OVER ([PARTITION BY COL_NAME_1] ORDER BY COL_NAME_2 [DESC]) 
+
+? PARTITION BY COL_NAME
+: 순위를 지정할 때 파티션을 줄 수 있다. 
+
+만약, EMPLOYEES 테이블에서 부서별 SALARY의 순위를 매기고 싶다면 아래와 같이 쿼리를 짤 수 있다 :
+
+SELECT name,
+      RANK() OVER(PARTITION BY department_id ORDER BY salary DESC) AS salary_rank
+FROM employees;
+
+3. Actors and Directors Who Cooperated(협력한) At Least Three Times 
+# 조건 
+- the actor has cooperated with the director at least three times 
+   (actor_id, director_id) : pairs
+   
+select actor_id, director_id 
+from actordirector
+group by actor_id, director_id
+having count(timestamp) >= 3 
+            -- or *
+
+
+3.1. 회고
+해당 문제는 group by를 이용해야 했는데, 
+조건에서 actor_id와 director_id가 pair가 되어야 한다 했기 때문에
+두 컬럼을 동시에 group by절에 넣었다. 
+그루핑이 된 상태에서 having절을 이용해서 timestamp가 3번 이상인 데이터만 출력되도록 조건을 걸었다.
+
+select actor_id, director_id 
+from actordirector
+group by actor_id, director_id
+having count(timestamp) >= 3 
+
+4. [1068] Product Sales Analysis 1 
+# 조건 
+- sales 테이블의 각 sale_id에 대한 product_name, 연도 및 가격을 출력하는 쿼리를 작성하자
+
+select p.product_name
+        ,s.year
+        ,s.price
+from sales s
+    left join product p on s.product_id = p.product_id
+    
+4.1. 회고
+- 테이블 설명에서는 product-id가 sales - product 테이블을 잇는 외래키라 해서 inner join을 사용했다.
+  근데 만약 현업에서 null값이 있거나 할 수도 있으니 유실되는 데이터를 줄이기 위해 left join을  써야하지 않을가?라는 생각이 들었다. 
+  문제 자체는 inner join으로 해서 푸는게 더 성능이 좋지 않을까?란 생각이 있다. 
+
+# 성능이 되게 좋았던 쿼리 (faster than 95.70%)
+SELECT p.product_name
+      ,d.year
+      ,d.price
+FROM Product AS p JOIN (SELECT DISTINCT product_id 
+                                , year
+                                , price 
+                         FROM Sales) as d 
+                    ON p.product_id = d.product_id 
+                   
+5. [1069] Product Sales Analysis 2 
+
+SELECT product_id
+        ,sum(quantity) as total_quantity
+FROM sales 
+group by 1 
+
+여기서는 distinct하니까 성능이 더 낮아지네? 
+
