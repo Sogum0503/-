@@ -105,4 +105,5 @@ FROM sales
 group by 1 
 
 여기서는 distinct하니까 성능이 더 낮아지네? 
+-> distinct는 select절에서 모든 row를 정렬 후 중복을 제거하는 거라서 성능이 느려질수있음그
 
