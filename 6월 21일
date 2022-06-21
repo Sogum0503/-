@@ -2,3 +2,68 @@
 1. 데이터리안 입문반 week3 진행
 - 수업 자료기 때문에 노션에 정리해둠 
 
+# 리트코드 문제 풀이
+
+1. [180] Consecutive Numbers 
+# 이 문제 좀 어려움 
+# LEAD / LAG 둘 다 사용 가능하다. 
+SELECT DISTINCT l.Num as ConsecutiveNums
+FROM (
+	  SELECT Num
+      		, LEAD(Num, 1) OVER (ORDER BY Id) as next
+            , LEAD(Num, 2) OVER (ORDER BY Id) as afternext
+      FROM logs) l
+WHERE l.Num = l.next
+AND l.Num = l.afternext
+
+
+
+2. [184] Department Highest Salary 
+
+-- 1) FROM 절 서브쿼리
+SELECT df.name as Department
+     , e.name as Employee
+     , e.salary as Salary
+FROM (
+    SELECT d.name
+         , d.id
+         , max(e.salary) as salary
+    FROM employee e
+         INNER JOIN department d ON e.departmentid = d.id
+    GROUP BY d.name, d.id
+    ) df INNER JOIN employee e ON e.salary = df.salary AND e.departmentid = df.id
+
+
+-- 2) 다중 컬럼 서브쿼리 
+-- where절에 서브쿼리 넣어두기 
+SELECT d.name   AS 'department',
+       e.name   AS 'employee',
+       salary
+FROM   employee e
+JOIN department d
+         ON e.departmentid = d.id
+WHERE  (e.departmentid, salary ) IN (SELECT departmentid,
+                                         Max(salary)
+                                      FROM   employee
+                                      GROUP  BY departmentid);
+                                      
+ --3) WINDOW FUNCTION _ MAX 
+
+SELECT ms.department AS Department
+	, ms.name AS Employee
+    , ms.salary AS Salary	
+FROM (
+	SELECT employee.name
+    	, employee.salary
+        , department.name AS department
+        , MAX(salary) OVER (PARTITION BY departmentId) max_salary
+    FROM employee
+    	INNER JOIN department ON employee.departmentId = department.Id) ms
+WHERE ms.salary = ms.max_salary
+
+
+3. [1075] Project Employees 1 
+
+
+4. [1076]
+5. [1082]
