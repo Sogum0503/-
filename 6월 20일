@@ -1,1 +1,76 @@
 스터디 내용 정리 
+
+# 리트코드 
+
+1. Actors and Directors Who Cooperated At Least Three Times 
+
+# 방법 1 (기존)
+select director_id
+      , actor_id
+from actordirector
+group by 1,2
+having count(distinct timestamp ) >= 3 
+
+# 방법 2 : (actor_id, director_id)의 순서가 무방할 때 
+
+with a as 
+          (select actor_id
+                  ,director_id
+                  ,timestamp
+           from actordirector 
+           
+           union 
+           
+           select director_id
+                  ,actor_id
+                  ,timestamp 
+           from actordirector)
+ 
+ select direcotr_id
+      ,actor_id
+ from a
+ group by director_id, actor_id
+ having count(distinct timestamp) >= 3 
+ 
+ 2. [176] Second Highest Salary 
+ 
+ # 방법 1
+ with salary_desc as (
+                      select salary
+                              ,densce_rank() over(order by salary desc) as rnk
+                      from employee 
+                      )
+                    
+select max(salary) as secondhighestsalary
+from salary_desc
+where rnk=2 
+
+# 방법 2
+
+with salary_desc as (
+                    select salary
+                    from employee
+                    order by salary desc)
+                    
+select coalesce(salary,null) as secondhiestsalary 
+from salary_desc
+limit 1 offset 1 
+
+- 근데 이 방법은 사용하지 않는게 좋을 것 같다.
+- coalesce/ifnull은 null을 0등 다른 값으로 대체 시 사용. 해당 문제에는 적합하지 않은 방법이라 판단됨. 
+
+
+3. [1068] Product Sales Analysis 1 
+
+# 이 문제에서 성능이 되게 좋았던 쿼리 (faster than 95.70%)에 대한 고촬.. 
+SELECT p.product_name
+      ,d.year
+      ,d.price
+FROM Product AS p JOIN (SELECT DISTINCT product_id 
+                                , year
+                                , price 
+                         FROM Sales) as d 
+                    ON p.product_id = d.product_id 
+                    
+-- 해당 문제는 역시 이런식(조건을 준 이너조인)으로 하면 유실될 데이터들이 있을 수 있기 때문에 현업에서는 사용하는 것을 지양하는 것이 좋을 것 같다. 
+-- 현재에서는 sales 테이블이 메인 테이블이 되어 모든 데이터를 보존해야 하는 상황인데, 이너조인을 하게 되면 유실될 테이터 들이 있기 때문. 
