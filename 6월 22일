@@ -99,4 +99,29 @@ with summary as (
             ,salary
      from summary
      where rnk = 1 
+     
+  ---------------------------------------------------------
+  
+  left join / inner join 
+  
+  - 직관적으로는 inner join이 left join보다 빨라야 하지만 몇몇 상황에서는 그렇지 않다
+  
+  1. inner join이 left join보다 빨라야 하는 이유 
+  - 구현 방식의 차이 
+     - INNER JOINS use hash matching which has a O(1) complexity 
+     - LEFT JOINS which use nested loops O(n) 
+  - left join이 더 광범위하기 때문에 일반적으로 더 많은 열을 처리해야 한다. (기준으로 다 가져다 붙이니까)
+  
+  2. left join이 inner join보다 빠른 두 가지 경우
+  1) Small number of entries
+     - inner join은 hash matching을 이용합니다.
+     - small set would cause the overhead of a hash match the most expensive part of the query 
+  - this allows LEFT JOINS to work faster in this context. 
+  
  
+  2) 조인 컬럼이 외부 테이블의 PK인 경우. 
+     - When the join columns are the PK of the outer table
+       and none of the outer table columns are referenced outside of the outer join itself. 
+     - This would allow the query planner to drop the outer joined table in case of a LEFT JOIN 
+        whereas an INNER JOIN in this case would test each row to join the two tables.
+  
