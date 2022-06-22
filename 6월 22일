@@ -125,3 +125,6 @@ with summary as (
      - This would allow the query planner to drop the outer joined table in case of a LEFT JOIN 
         whereas an INNER JOIN in this case would test each row to join the two tables.
   
+
+# hash matchi / nested loops? 
+https://lovelyjk.tistory.com/5
