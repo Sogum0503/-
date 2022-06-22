@@ -63,7 +63,66 @@ WHERE ms.salary = ms.max_salary
 
 
 3. [1075] Project Employees 1 
+select p.project_id
+        , round(avg(e.experience_years),2) as average_years
+from project p left join employee e on 
+            p.employee_id = e.employee_id 
+group by p.project_id
 
+4. [1076] project employees 2 
+# solution 1 
+select project_id 
+from project 
+group by project_id 
+having count(employee_id) = (select count(employee_id)
+                             from project
+                              group by project_id
+                              order by count(employee_id) desc 
+                              limit 1);
+			      
+# solution 2 
+with project_cnt as(
+    select project_id
+          ,count(distinct employee_id) as cnt
+    from project
+    group by 1
+),project_rnk as(
+    select project_id
+          ,cnt
+          ,dense_rank() over(order by cnt desc) as rnk
+from project_cnt
+)
+select project_id
+from project_rnk
+where rnk=1
 
-4. [1076]
-5. [1082]
+5. [1082] 
+
+# solution 1
+select seller_id
+from sales 
+group by seller_id
+having sum(price) = (select sum(price)
+                    from sales 
+                    group by seller_id
+                    order by 1 desc 
+                    limit 1)
+		    
+# solution 2 
+with df as (select sum(price) as sum_price
+            from sales 
+           group by seller_id)
+           
+select seller_id 
+from df 
+where sum_price = (select max(sum_price)
+                  from df)
+		  
+# solution 3 
+select seller_id
+from ( select seller_id
+			,rank() over(order by sum(price) desc) as rnk_price
+        from sales 
+        group by seller_id) temp
+ where rnk_price = 1;
+
