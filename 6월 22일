@@ -1,0 +1,102 @@
+
+1. 1075 project employees 1 
+
+# 기존
+select p.project_id
+        , round(avg(e.experience_years),2) as average_years
+from project p left join employee e on 
+            p.employee_id = e.employee_id 
+group by p.project_id
+
+해당 쿼리를 보면 project에 employee 테이블을 left join 한 것이다.
+근데 이렇게 되면 혹여나 null값이 붙을 수도 있기 때문에, ifnull 혹은 coalesce 사용을 고려해야 한다.
+
+If you use a left join, you are assuming all values for Employee can be NULL for a particular project.
+As a result, you would need to account for experience_years being NULL and using a solution similar to below instead:
+
+ROUND(AVG(experience_years) ,2) -> ROUND(COALESCE(AVG(experience_years),0) ,2)
+
+# coalesce 사용 후 
+select p.project_id
+      ,round(coalesce(avg(e.experience_years),0),2) as average_years
+from project p left join employee e on 
+            p.employee_id = e.employee_id 
+group by p.project_id
+
+# 집계함수의 특징 
+- aggregation은 null값을 처리하지 않습니다.
+- 만약 테이블에 null값이 존재하는데, avg를 이용해서 평균을 나타내게 된다면 실제 데이터와의 차이가 발생합니다.
+
+2. 1076 project employees 2
+
+# with절을 활용하자. 
+
+with project_cnt as(
+    select project_id
+          ,count(distinct employee_id) as cnt
+    from project
+    group by 1) -- 각 프로젝트 별로 인원이 몇명인지에 대한 테이블 
+    ,project_rnk as(
+                    select project_id
+                            ,cnt
+                            ,dense_rank() over(order by cnt desc) as rnk -- 동일 순위가 있을 수도 있기 때문에 dense_rank 사용
+                      from project_cnt
+)
+
+select project_id
+from project_rnk
+where rnk=1
+
+-----------------------------------
+# 윈도우 펑션을 쓰지 않는다면??
+##  count 윈도우 함수는 제약을 (distinct/desc(x))로 인해 simplify에 별 도움이 안됨
+-- 카운트가 윈도우 펑션 중에서 제약이 가장 많은 것 같음... 
+-- 윈도우 펑션에서는 카운트에 디스팅트, 디센딩을 함께 사용할 수 없다.
+-- 해당 쿼리는 그렇게 바람직하지 않은 것으로 판단됨 
+
+with project_cnt as (
+                    select project_id
+                        ,count(employee_id) over(partition by project_id) as cnt
+                     from project),
+     project_num as (
+                    select project_id
+                          ,cnt
+                          ,dense_rank() over(order by cnt desc) as num
+                    from project_cnt
+                    order by cnt desc )
+                    
+select distinct proejct_id 
+from proejct_num
+where num = 1 
+
+3. 184 department highest salary 
+# solution 1 
+with highest as (
+                  select departmentid
+                          ,max(salary) as highest_sal
+                   from employee
+                   group by 1
+                   )
+select d.name as Department
+      ,ifnull(e.name,0) as Employee
+      ,coalesce(e.salary,0) as Salary -- left join으로 인한 결측치 대비
+from higest h
+      left join employee e on h.departmentid = e.departmentid
+                          and h.highest_sal = e.salary
+       left join department d on h.departmentid = d.id 
+       
+# solution 2 
+with summary as (
+                  select d.name as Department
+                        ,e.name as Employee
+                        ,e.salary
+                        ,dense_rank() over (partition by e.departmentid order by e.salary desc) rnk
+                   from employee e
+                        left join department d on e.departmentid = d.id 
+                  ) -- 크게 left join으로 묶은 뒤 필요한 데이터만 select 해서 with절로 가상 테이블 만들기 
+     select department
+            ,employee
+            ,salary
+     from summary
+     where rnk = 1 
+ 
