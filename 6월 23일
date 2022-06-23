@@ -1,0 +1,32 @@
+
+1. 식사 금액과 팁의 관계 
+Select day
+      ,sum(tip) as tip_daily
+      ,sum(total_bill) as revenue_daily
+      ,sum(tip) * 100 / sum(total_bill) as tip_revenue_pct
+from tips 
+group by day
+order by tip_revenue_pct 
+
+1.1 궁금증 
+
+# sum(tip)/sum(total-bill) * 100 하면 성능에 차이가 있는가?
+   : 속도에는 차이가 없다. 편한대로 작성하면 됨 
+   
+# 결과에 %를 추가하는 방법
+1) CAST() 함수를 이용해서 데이터 형식을 숫자가 아닌 문자(char)로 변경
+   - CAST(변환하고 싶은 데이터 AS 데이터 형식)
+   - CONVERT(변환하고 싶은 데이터, 데이터 형식)
+   
+2) CONCAT() 함수를 이용해서 문자로 변환된 퍼센트 값 뒤에 '%' 기호 추가 
+   - oracle에서는 "||"를 이용해서 문자열을 이어줬음
+      - NULL을 빈 문자열로 간주하고 이어붙인 결과를 리턴한다. 
+   - mysql에서는 ||이 논리연산자 OR을 뜻한다. 그래서 A || B일 때 둘 중 하나가 참이면 모두 참이다 라는 의미를 가지게 된다 
+      - 또한 CONCAT에 NULL이 포함되어 있으면 결과로 NULL을 리턴한다. 
+      - 이를 방지하기 위해 CONCAT(1234, IFNULL(NULL,''), 'hello') 로 직접 변환하기. 
+  
+  ※즉, 오라클에서는 concat 함수는 모든 인수를 묵시적으로 문자열 형식으로 변환시킨 다음에 연결을 한다. 따라서 NULL도 빈문자열로 변환이 되어 연결이 됨. 
+    하지만 MySQL에서는 NULL은 빈 문자열로 변환시키지 않고 NULL이 포함되었을 경우 결과로 NULL을 리턴한다.
+      
+3) 완성 쿼리 : CONCAT(CAST(SUM(tip)*100 / SUM(total_bill) AS char), '%') 
+
