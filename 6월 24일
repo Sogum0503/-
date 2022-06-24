@@ -30,6 +30,7 @@ from customer_stats
   
 
 2. 떠나간 VIP 찾기 
+# 방법 1 
 (select if(date_sub('2021-01-01' ,interval 31 day) <= last_order_date, 1, 0) as recency
            ,if(cnt_orders <3, 0, 1) as frequency
            ,(case when sum_sales < 500 then 0 else 1 end) as monetary
@@ -46,6 +47,26 @@ from customer_stats
 group by 1,2,3
 having recency=0 and frequency=1 and monetary=1)
 order by recency desc
+
+# 방법 2 
+with temp as (select case when last_order_date >= '2020-12-01' then 1 else 0 end as recency
+                    ,case when cnt_orders >= 3 then 1 else 0 end as frequency
+                    ,if(sum_sales >= 500, 1, 0) as monetary
+                    ,customer_id
+              from customer_stats)
+
+select recency
+      ,frequency
+      ,monetary
+      ,count(customer_id) as customers
+from temp
+group by recency,frequency,monetary
+having recency >=0 
+and frequency = 1 
+and monetary = 1
+order by recency desc 
+
+
 
 3. 가구 판매 비중이 높았던 날 
 
