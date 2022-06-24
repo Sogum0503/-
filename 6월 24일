@@ -1,0 +1,62 @@
+1. 고객 별 점수 매기기
+
+# 기존 방법 
+select customer_id
+          ,last_order_date
+          ,cnt_orders
+          ,sum_sales
+          ,(case when datediff('2021-01-01',last_order_date ) <30 then 1 else 0 end) as recency
+         ,if(cnt_orders < 3, 0, 1) as frequency
+         ,if(sum_sales < 500, 0, 1) as monetary
+from customer_stats
+
+# 풀이 방법 
+select customer_id
+      ,last_order_date
+      ,cnt_orders
+      ,sum_sales
+      ,case when last_order_date >= '2020-12-01' then 1 else 0 end as recency
+      ,case when cnt_orders >= 3 then 1 else 0 end as frequency
+      ,if(sum_sales >= 500, 1, 0) as monetary
+from customer_stats 
+
+1.1. 회고 및 주저리
+### 암산이 가능 한 계산이 있다면 굳이 함수(위 문제에서: datediff or date_add)를 사용하지 말자. 
+  - 왜? : SQL 서버가 계산식을 한번 더 돌려야 하기 때문에 cost가 발생 해 성능에 차이가 생길 수 있다.
+  - 현업에서도 굳이 함수식을 사용해서 날짜를 계산하지 않고, 암산을 통해 비교연산자로 바로 비교하는 경우가 많다.
+
+- recency의 조건이 1달 이내로 구매 한 데이터를 구해라 였기 때문에 datediff 혹은 date_add 함수를 사용해서 1달을 계산해줘야겠다는 생각이 있었다.
+  - 하지만 수업을 들으니, 현업에서는 암산이 가능한 계산은 굳이 함수를 사용하지 않는다고 했다. 
+  
+
+2. 떠나간 VIP 찾기 
+(select if(date_sub('2021-01-01' ,interval 31 day) <= last_order_date, 1, 0) as recency
+           ,if(cnt_orders <3, 0, 1) as frequency
+           ,(case when sum_sales < 500 then 0 else 1 end) as monetary
+           ,count(distinct customer_id) as customers
+from customer_stats
+group by 1,2,3
+having recency=1 and frequency=1 and monetary=1)
+union
+(select if(date_sub('2021-01-01' ,interval 31 day) <= last_order_date, 1, 0) as recency
+           ,if(cnt_orders <3, 0, 1) as frequency
+           ,(case when sum_sales < 500 then 0 else 1 end) as monetary
+          ,count(distinct customer_id) as customers
+from customer_stats
+group by 1,2,3
+having recency=0 and frequency=1 and monetary=1)
+order by recency desc
+
+3. 가구 판매 비중이 높았던 날 
+
+-- 일별 주문 수가 10개 이상 
+-- Furniture 카테고리 주문율이 40% 이상(round,2)
+-- furniture 주문율이 높은 날짜 정렬 , 비율이 같으면 날짜순 
+
+select order_date
+      , COUNT(DISTINCT CASE WHEN category = 'Furniture' THEN order_id END) furniture
+      , ROUND(COUNT(DISTINCT CASE WHEN category = 'Furniture' THEN order_id END)/COUNT(DISTINCT order_id) *100,2) AS furniture_pct
+from records 
+group by order_date 
+HAVING COUNT(DISTINCT order_id) >= 10 AND furniture_pct >= 40
+ORDER BY 3 desc, 1 asc 
