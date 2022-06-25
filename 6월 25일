@@ -1,0 +1,66 @@
+리트코드 3문제 풀이
+
+1. [1083] Sales Analysis 2 
+
+# solution 1 
+SELECT s.buyer_id
+FROM Sales AS s INNER JOIN Product AS p
+ON s.product_id = p.product_id
+GROUP BY s.buyer_id
+HAVING SUM(CASE WHEN p.product_name = 'S8' THEN 1 ELSE 0 END) > 0
+AND SUM(CASE WHEN p.product_name = 'iPhone' THEN 1 ELSE 0 END) = 0;
+
+# solution 2 
+SELECT s.buyer_id
+FROM Sales s JOIN Product p USING(product_id)
+GROUP BY s.buyer_id
+HAVING SUM(p.product_name = 'S8') > 0 AND SUM(p.product_name = 'iPhone') = 0
+
+2.[1084] Sales Analysis 3 
+
+# solution 1 
+SELECT s.product_id, product_name
+FROM Sales s
+LEFT JOIN Product p
+ON s.product_id = p.product_id
+GROUP BY s.product_id
+HAVING MIN(sale_date) >= CAST('2019-01-01' AS DATE) AND
+       MAX(sale_date) <= CAST('2019-03-31' AS DATE)
+       
+# solution 2    
+SELECT product_id, product_name
+FROM Product
+WHERE product_id NOT IN
+(SELECT product_id FROM Sales
+WHERE sale_date NOT BETWEEN '2019-01-01' AND '2019-03-31')
+
+3. [1113] Reported Posts
+
+# solution 1 
+select 
+  extra as report_reason
+  ,count(distinct post_id) as report_count
+from Actions
+where action_date = '2019-07-04'
+  and action = 'report'
+group by extra
+
+solve sql 관련 주저리
+
+지역별 주문의 특징을 풀면서 주문량에 대한 궁금증이 생김.
+해당 문제는 지역별 카테고리의 주문 수 차이를 알아보는 건데, 거기서 주문 수 = count(distinct order_id) 였다.
+예전 스터디 진행하면서도 고민했던 건데.. 
+아마 주문된 물건 수량으로 계산하여 비교하게 되면 
+극단값(어떤 한 사람이 해당 카테고리의 물건을 극단적으로 많이 구매함)에 의해 결과 값이 왜곡될 수 있어서 주문 수로 비교하는 것일까?
+
+예를들면 이런 상황이 발생할 수 있어서?
+
+핫팩의 월별 매출 분석을 진행하려고 하는데, 
+
+8월에 어떤 고객 한 사람이 한 번에 1만개의 핫팩을 구매했고,
+그 해 12월의 총 핫팩 판매량이 1만개라고 해서
+아~ 8월과 12월에 핫팩이 잘나가구나 ^^ 그럼 해당 월에 핫팩 관련 마케팅을 진행해야지
+
+이런 이상한 결과를 방지하기 위해 주문 수로 계산하는 것일까..?
+사실 근데 저런 극단 값은 전처리로 정리하면 되는거니까..
+커머스에서 주문된 물건 갯수가 아닌 주문 량으로 비교하는 이유에 대해서 고민 해 봐야겠다. 
