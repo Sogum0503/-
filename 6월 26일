@@ -36,3 +36,36 @@ MySQL 구버전에서는 Window Function을 지원하지 않지만, 가장 간�
 해당 문제는 player_id별로 event_date에 따른 games_played의 누적합을 구해야 했기 때문에,
 sum(games_palyed) over (partition by palyer_id order by event_date)를 통해 games_palyed_so_far을 구했습니다
 
+# 오전 SQL 스터디 
+- 스칼라 서브쿼리는 한 행의 값만 출력한다. 
+- 궁금증 : order by 절에 추가적인 처리를 하는게 가능한가?
+
+select
+if(last_order_date>='2020-12-01',1,0)as recency
+,if(cnt_orders>=3,1,0) as frequency
+,if(sum_sales>=500,1,0) as monetary
+,count(distinct customer_id) as customers
+from customer_stats
+where cnt_orders>=3 and sum_sales>=500
+group by recency,frequency,monetary
+order by max(recency);
+
+스터디원 분이 order by max(recency) = order by desc가 되어야 하는거 아니냐
+다른 문제에서 max(날짜) = 날짜 desc로 출력되는 문제를 풀어보셨다 했는데
+
+예: 가장 recency의 가장 높은 값 하나를 출력하시오
+   order by max(recency)
+   limit 1 ; -- 이런식으로 하셨다고 하는데.. 
+
+order by 컬럼에 추가적인 처리를 가하는게 가능한가..??
+아무리 쿼리를 돌려봐도 원하는 결과값은 나오지 않았다.
+
+order by 개념을 다시 숙지하고 스택 오버 플로우에 검색을 해봐도 그런 얘기는 안나옴..
+우선 order by는 sql 실행 순서상 맨 마지막에 오고, 기준 컬럼 값을 이용해서 정렬하는 역할을 하기 때문엧
+추가적인 결과값을 내기는 어려울 것 같은데 ㅠ 
+
+이거는 추가적인 연구가 필요할 것 같다.
+
+그리고 나의 질문
+order by x + 1 히게 되면 정렬이 엉망진창이 되던데, 이건 그냥 문법 오류인데 서버가 묵인하고 랜덤하게 값을 출력하는 건가
+아니면 내가 이해하지 못하는 다른 로직이 있는 건가?? 내일 수업 시간에 여쭤봐야겠다. 
