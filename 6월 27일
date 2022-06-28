@@ -33,5 +33,26 @@ customers 같이 집계 연산의 결과가 되는 컬럼의 가장 큰 값을 �
 # 리트코드 풀이 
 
 1141. User Activity for the Past 30 Days I
+
+SELECT activity_date AS day, COUNT(DISTINCT user_id) AS active_users
+FROM Activity
+GROUP BY activity_date
+HAVING activity_date <= '2019-07-27' AND activity_date > '2019-06-27'
+
 1142. User Activity for the Past 30 Days II
+
+select ifnull(round(sum(x)/count(user_id),2),0.00) as average_sessions_per_user 
+from 
+    (select user_id, 
+            count(distinct session_id) as x
+      from activity
+      where 
+            activity_date between date_sub('2019-07-27',interval 29 day) and '2019-07-27'
+      group by user_id) as t 
+      
 1148. Article Views I
+
+SELECT DISTINCT author_id as id
+from views
+WHERE author_id = viewer_id
+ORDER BY id
