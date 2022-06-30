@@ -1,5 +1,9 @@
 # 리트코드 문제 풀이
 
+1173. Immediate Food Delivery I
+1211. Queries Quality and Percentage
+1241. Number of Comments per Post
+
 # [Mysql] DATE, DATETIME, TIME, TIMESTAMP 차이 
 
 1) DATE 
@@ -21,3 +25,18 @@ YYYY-MM-DD HH:MM:SS 형식으로 입력하고, '1000-01-01 00:00:00' 부터 '999
 - 용량 : DATETIME(8BYTE) / TIMESTAMP(4BYTE)
 - 입력 : DATETIME은 데이터값을 입력해주어야만 날짜가 입력이 됨
          TIMESTAMP는 데이터값을 입력해주지 않고 저장시에 자동으로 현재 날짜가 입력이 됨 
+
+# 특정 기간(DATETIME)을 주어 기간을 조회 할 경우 주의 
+
+가령, 2022-01-01 부터 2022-01-10 까지의 주문 목록을 조회해야 한다면
+ORDER_DATE BETWEEN '2022-01-01' AND '2022-01-10'과 같은 방법을 자주 사용했다.
+
+하지만, 'YYYY-MM-DD'와 같은 DATE 형식에서는 해당 쿼리가 올바르게 돌아갈 지 모르지만
+검색 필드가 DATETIME 형식이라면, [2022년-1월-1일]은 [2022년-1월-1일 00시 00분 00초]의 형식을 따르는 것이다.
+그래서 BETWEEN AND 방법을 사용 할 경우, 2022-01-10의 데이터도 함께 조회되기를 원했으나 결과는 그렇지 않게 나오는 것이다. 
+
+어제 리트코드를 풀면서 의아했던 문제점이 여기에 있었다. 
+
+이럴 경우에는
+
+WHERE ORDER_DATE BETWEEN '2022-01-01' AND '2022-01-10 23:59:59' 와 같은 형식으로 날짜 까지 지정해보자. 
