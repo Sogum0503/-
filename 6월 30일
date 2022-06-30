@@ -1,7 +1,18 @@
 # 리트코드 문제 풀이
 
 1173. Immediate Food Delivery I
+
+# TRUE면 1을 반환한다는 아이디어에서 착안
+SELECT round(SUM(order_date = customer_pref_delivery_date)/count(delivery_id)*100,2) as immediate_percentage
+FROM delivery
+
+# case when 
+select round (count(case when order_date = customer_pref_delivery_date then delivery_id end) / count(delivery_id) * 100 ,2 ) as immediate_percentage
+from delivery
+
 1211. Queries Quality and Percentage
+
+
 1241. Number of Comments per Post
 
 # [Mysql] DATE, DATETIME, TIME, TIMESTAMP 차이 
