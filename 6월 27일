@@ -34,6 +34,22 @@ customers 같이 집계 연산의 결과가 되는 컬럼의 가장 큰 값을 �
 
 1141. User Activity for the Past 30 Days I
 
+# datediff 
+select activity_date as day,
+        count(distinct user_id) as active_users
+from activity
+where (datediff('2019-07-27',activity_date) < 30 and activity_date <= '2019-07-27')-- 7월 27일도 포함한다 
+and activity_type is not null -- 한 번이라도 활성 된 적이 있는 유저 
+group by day 
+
+# between 
+select activity_date as day,
+		count(distinct user_id) as active_users
+from activity
+where (activity_date between '2019-07-28' and '2017-07-27')
+and activity_type is not null 
+group by day
+
 SELECT activity_date AS day, COUNT(DISTINCT user_id) AS active_users
 FROM Activity
 GROUP BY activity_date
@@ -41,15 +57,38 @@ HAVING activity_date <= '2019-07-27' AND activity_date > '2019-06-27'
 
 1142. User Activity for the Past 30 Days II
 
-select ifnull(round(sum(x)/count(user_id),2),0.00) as average_sessions_per_user 
-from 
-    (select user_id, 
-            count(distinct session_id) as x
-      from activity
-      where 
-            activity_date between date_sub('2019-07-27',interval 29 day) and '2019-07-27'
-      group by user_id) as t 
+# date_sub 
+with temp as (
+    select user_id
+            ,count(distinct session_id) as s_id
+     from activity
+     where 
+        (activity_date between date_sub('2019-07-27', interval 29 day) and '2019-07-27')
+     and activity_type is not null 
+     group by user_id) 
+    
+select ifnull(round(sum(s_id)/count(user_id),2),0.00) as average_sessions_per_user --ifnull 뭐야?? 
+from temp
+
+# datediff 
+with temp as (
+    select user_id
+            ,count(distinct session_id) as s_id
+     from activity
+     where 
+        (datediff('2019-07-27',activity_date)<30 and activity_date <= '2019-07-27')
+     and activity_type is not null 
+     group by user_id) 
+    
+select ifnull(round(sum(s_id)/count(user_id),2),0.00) as average_sessions_per_user 
+from temp
       
+# DISCUSSION 1위 쿼리.. ㅎ 
+-- 이렇게 간단히도 작성할 수 있구나 ^^ ! 
+select ifnull(round(count(distinct session_id)/count(distinct user_id),2),0.00) as "average_sessions_per_user"
+from activity 
+WHERE activity_date >= '2019-06-28' and activity_date <= '2019-07-27';
+
 1148. Article Views I
 
 SELECT DISTINCT author_id as id
