@@ -1,22 +1,56 @@
 # 리트코드 문제풀이 
--- 프리미엄 문제들은 저작권의 이유로 자세한 설명은 블로그 (보호 글)에 정리 해 두었습니다.
 
 570. Managers with at Least 5 Direct Reports 
 
-SELECT e2.Name
-FROM Employee e1 LEFT JOIN Employee e2 
-ON e1.managerId = e2.Id
-GROUP BY e1.managerId
-HAVING COUNT(e1.managerId)>=5
+# self-join
+select e.name 
+from employee e 
+    join employee m on e.id = m.managerid
+group by m.managerid
+having count(e.id) >= 5
+
+
+# sub-query
+select name
+from employee
+where id in (select managerid
+            from employee
+            group by managerid
+            having count(id) >= 5)
+            
+            
+## 상황에 따라 SUB-QUERY OR SELF-JOIN을 선택해서 사용하자. 
+- 테이블의 스키마를 잘 활용하기 
+
+"Self-join takes more time because you end up joining data for all managers including managers 
+  who have less than 5 direct reprots and will be filtered out from the result-set later. 
+This query is faster because you only retain data for managers who have at least 5 direct reports and 
+  then return their name. "
+
+self-join은 부하 직원이 5명 미만인 관리자를 포함한 모든 관리자의 데이터를 참조하게 되고, 
+  나중에 결과 집합에서 필터링 되기 때문에 시간이 더 걸립니다. 
+서브 쿼리를 활용한 해당 쿼리는, 5명 이상의  부하 직원이 있는 관리자의 데이터만 추출 한 다음, 
+  이름을 반환하므로 해당 쿼리가 더 빠릅니다. 
+  
 
 574. Winning Candidate
 
-SELECT C.name
-FROM Candidate C INNER JOIN Vote V 
-ON C.id = V.candidateID
-GROUP By V.candidateID
-ORDER BY COUNT(V.candidateID) DESC
-LIMIT 1
+# join 
+select c.name  
+from candidate c 
+    join vote v on c.id = v.candidateId
+group by c.id -- v.id로 하면 wrong이 뜸 
+order by count(v.candidateid) desc 
+limit 1
+
+# sub-query
+select name
+from candidate 
+where id = (select candidateid
+            from vote
+            group by candidateid
+            order by count(id) desc 
+            limit 1)
 
 # 월간 데이터리안을 참석함 
 -- 내용 정리 중..
