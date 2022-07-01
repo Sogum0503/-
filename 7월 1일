@@ -1,0 +1,65 @@
+# LEETCODE 문제 풀이
+
+[578#] Get Highest Answer Rate Question
+
+# with절
+with temp as (
+select question_id
+        , sum(case when action = "answer" then 1 else 0 end) /sum(case when action = "show" then 1 else 0 end) as rate
+from surveyLog 
+group by question_id)
+
+select question_id as survey_log
+from temp
+order by rate desc, question_id 
+limit 1 
+
+
+# INLINE - VIEW 
+SELECT question_id as survey_log
+FROM (SELECT question_id 
+            ,SUM(CASE WHEN action = "answer" THEN 1 ELSE 0 END)
+                / SUM(CASE WHEN action = "show" THEN 1 ELSE 0 END) as rate 
+      FROM surveyLog
+      GROUP BY question_id) temp 
+ORDER BY rate DESC, question_id
+LIMiT 1
+
+# WINDOW FUNCTION
+SELECT
+    question_id as survey_log
+FROM
+(
+    SELECT
+        question_id,
+        RANK() OVER (ORDER BY (SUM(CASE WHEN action = 'answer' THEN 1 ELSE 0 END) / SUM(CASE WHEN action = 'show' THEN 1 ELSE 0 END)) DESC) AS rnk
+    FROM -- ROW_NUMBER하면 다른 값이 먼저 됨 아마 인덱스 값을 따라가나 봄 
+        SurveyLog
+    GROUP BY question_id
+)T
+WHERE rnk = 1
+ORDER by question_id 
+LIMIT 1
+
+## [오늘 배운거] ORDER BY절에서 연산하기
+
+SELECT question_id survey_log
+FROM (
+      SELECT question_id
+           , SUM(CASE WHEN action = 'show'
+                      THEN 1
+                      ELSE 0
+                 END) show_num
+           , SUM(CASE WHEN action = 'answer'
+                      THEN 1
+                      ELSE 0
+                 END) answer_num
+      FROM SurveyLog
+      GROUP BY question_id
+      ) sub
+ORDER BY (answer_num / show_num) DESC, question_id
+LIMIT 1
+
+-- 사실 오늘 배운 건 아니지만.. 이런 방법이 있다는 건 알면서도 ORDER BY에서 연산은 잘 안하게 된다.
+-- 성능은 뭐가 좋을까? 당장 RUNTIME만 보기에는 INLINE VIEW의 성능이 가장 좋게 나온다. 
+   
