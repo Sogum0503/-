@@ -1,0 +1,37 @@
+# leetcode 문제풀이 
+
+1251. Average Selling Price # 
+
+select prices.product_id, 
+        ROUND(SUM(price * units) / SUM(units), 2) as average_price
+from Prices 
+    join UnitsSold on prices.product_id = unitssold.product_id
+    and purchase_date between start_date and end_date
+group by product_id
+
+1280. Students and Examinations # 
+
+# join 
+SELECT 
+    student_id, 
+    student_name, 
+    subject_name, 
+    IFNULL(attended_exams, 0) AS attended_exams
+FROM 
+    Students 
+    CROSS JOIN Subjects
+    LEFT JOIN (SELECT student_id, subject_name, COUNT(*) AS attended_exams 
+               FROM Examinations 
+               GROUP BY student_id, subject_name) a USING (student_id, subject_name)
+ORDER BY student_id, subject_name
+
+1294. Weather Type in Each Country
+
+SELECT a.country_name,
+      CASE WHEN AVG(weather_state)<=15 THEN "Cold"
+      WHEN AVG(weather_state)>=25 THEN "Hot"
+      ELSE "Warm" END as weather_type 
+FROM Countries as a
+      JOIN Weather as b ON a.country_id=b.country_id
+WHERE b.day BETWEEN "2019-11-01" AND "2019-11-30"
+GROUP BY a.country_id;
