@@ -44,5 +44,45 @@ FROM summary s
                             AND s.subject_name = e.subject_name 
 GROUP BY 1,2,3
 ORDER BY 1,3
-                            
-          
+                     
+                     
+                     
+[585] Investments in 2016  
+
+1. EXISTS와 IN 함수 차이 비교 
+
+▶ 공통점
+- WHERE절에서 조건을 걸어줄 때 사용한다
+
+▶ 차이점
+<EXISTS> 
+EXISTS는 서브쿼리에 대한 결과가 '존재하는지'만 확인한다.
+
+JOIN되는 컬럼에 NULL을 갖는 ROW값이 존재한다면,NOT EXISTS는 TRUE를 리턴함. 
+
+<IN>
+IN은 실제 존재하는 데이터들의 모든 값까지 확인한다.
+
+JOIN되는 컬럼에 NULL을 갖는 ROW값이 존재한다면, NOT IN은 FALSE를 리턴한다.
+
+즉, NOT IN을 사용하면 조건에 맞는 데이터가 있다고 하더라도 NULL이 존재하면 "NO ROWS SELECTED"라고 나오게 된다.
+따라서 NOT IN을 사용할 때는 NVL로 NULL 체크를 꼭 진행해야 한다. 
+
+▶ 성능 관점에서..
+IN보다는 EXISTS가 우수하다고 함.
+
+# sub-query인데, EXIST를 이용한 
+
+SELECT ROUND(SUM(tiv_2016,2) tiv_2016
+FROM insurance t1
+WHERE EXISTS (
+               SELECT *
+               FROM insurance 
+               WHERE pid<> t1.pid
+               )
+AND NOT EXISTS(
+            SELECT *
+            FROM insurance
+            WHERE pid<> t1.pid
+            AND (lat,lon) = (t1.lat,t1.lon)
+            )
