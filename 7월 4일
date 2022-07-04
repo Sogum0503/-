@@ -1,0 +1,46 @@
+# 책 진행 중간 보고 
+- 그로스 해킹 챕터 1 완독 
+   - 내일은 인프런 강의를 읽을 계획 
+   
+# 스터디를 진행하며 추가로 얻은 지식과 문제 풀이 방법 
+
+1. CROSS JOIN 
+▶ 정의 
+- 두 개의 테이블을 아무 조건없이 연결시키는 조인 방법
+- 카티시안 곱을 하는 것과 같은 의미를 나타낸다.
+  따라서 두 집합의 건수만큼의 곱 만큼의 결과가 나오게 된다. 
+  
+▶ 쿼리 작성 방식:  
+  SELECT * FROM cities CROSS JOIN transport;
+  SELECT * FROM cities JOIN transport;
+  SELECT * FROM cities, transport; 
+
+2. SELF-JOIN
+▶ 정의
+- 같은 테이블에서 CROSS JOIN하는 것 
+- 동일한 테이블이지만 개념적으로 다른 정보를 결합하는 JOIN 
+
+▶ 쿼리 작성 방식:
+    SELECT e.empno, e.ename, e.mgr, m.empno, m.ename
+    FROM emp e, emp m
+    WHERE e.mgr = m.empno;
+    
+[1280#] Students and Examinations -- with절 활용
+
+WITH summary as (
+                  SELECT a.student_id
+                        ,a.student_name
+                        ,b.subject_name
+                        ,ROW_NUMBER() OVER PARTITION BY (a.student_name, b.subject_name) AS num
+                  FROM students a CROSS JOIN subjects b 
+                 ) 
+                 
+SELECT s.student_id 
+      ,s.student_name
+      ,s.subject_name
+      ,ifnull count(e.subject_name),0) attended_exam
+FROM summary s 
+    LEFT JOIN examinations e ON s.student_id = e.student_id
+                            AND s.subject_name = e.subject_name 
+                            
+          
