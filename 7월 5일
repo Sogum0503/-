@@ -1,0 +1,18 @@
+# 리트코드 문제 풀이 
+
+[1294#] Weather Type in Each Country
+
+
+with nov_weather as (
+    select country_id
+        , (case when avg(weather_state) <= 15 then 'Cold'
+                when avg(weather_state) >= 25 then 'Hot' else 'Warm' end) as weather_type
+    from weather
+    where month(day)=11 
+    group by country_id)
+
+select country_name
+        ,weather_type
+from countries c
+    inner join nov_weather nw on c.country_id = nw.country_id 
+group by country_name
