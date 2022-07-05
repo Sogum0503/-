@@ -2,7 +2,7 @@
 
 [1294#] Weather Type in Each Country
 
-
+# solution 1 
 with nov_weather as (
     select country_id
         , (case when avg(weather_state) <= 15 then 'Cold'
@@ -16,3 +16,14 @@ select country_name
 from countries c
     inner join nov_weather nw on c.country_id = nw.country_id 
 group by country_name
+
+# solution 2 이게 더 보기 편한거 같다 
+SELECT country_name,
+        (case when avg(weather_state) <= 15 then "Cold"
+              when avg(weather_state) >= 25 then "Hot"
+        Else "Warm" 
+        END) as weather_type 
+FROM countries c 
+        INNER JOIN weather w ON c.country_id = w.country_id 
+WHERE month(day) = 11
+GROUP BY country_name
