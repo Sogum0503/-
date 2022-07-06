@@ -19,3 +19,32 @@ SELECT employee_id
 FROM employee e 
     LEFT JOIN cnt c ON e.team_id = c.team_id
 
+
+-------------------------------------------------------------------------------------------------
+[1322#] Ads Performance
+
+# solution 1 -- with, ifnull 
+
+WITH temp AS (
+                SELECT ad_id
+                        , COUNT(CASE WHEN action = 'Clicked' THEN user_id END) AS act_click
+                        , COUNT(CASE WHEN action = 'Viewed' THEN user_id END) AS act_view 
+                FROM ads 
+                GROUP BY ad_id
+               )
+               
+SELECT ads.ad_id AS ad_id 
+       ,IFNULL(ROUND(act_click/(act_click+act_view)*100,2),0) AS ctr 
+FROM ads 
+    LEFT JOIN temp ON ads.ad_id = temp.ad_id 
+GROUP BY ad_id 
+ORDER BY ctr desc, ad_id asc 
+
+# solution 2 -- coalesce 
+SELECT ad_id
+      ,COALESCE(ROUND(100*SUM(CASE WHEN action ='Clicked' THEN 1 ELSE 0 END)/SUM(CASE WHEN action IN('Clicked', 'Viewed') THEN 1 ELSE 0 END),2),0) ctr
+FROM ads
+GROUP BY ad_id
+ORDER BY ctr desc, ad_id
+
+
