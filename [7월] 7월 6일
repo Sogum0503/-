@@ -1,0 +1,21 @@
+# 리트코드 문제 풀이 
+
+[1303#] Find the Team Size
+
+# solution 1 -- window function 
+SELECT employee_id
+      , COUNT(employee_id) OVER(PARTITION BY team_id) AS team_size
+FROM employee
+
+# solution 2 -- 만약 window function을 사용하지 못할 때 
+WITH cnt AS (
+            SELECT team_id
+                    , COUNT(employee_id) AS team_size
+            FROM employee
+            GROUP BY team_id)
+
+SELECT employee_id
+        , team_size
+FROM employee e 
+    LEFT JOIN cnt c ON e.team_id = c.team_id
+
