@@ -67,3 +67,12 @@ SELECT DISTINCT t1.id
          END) AS Type
 FROM tree t1 
     LEFT JOIN tree t2 ON t1.id = t2.p_id 
+    
+-----------------------------------------------------
+[612#] Shortest Distance in a Plane
+
+SELECT ROUND(SQRT(POW((p2.x-p1.x),2)+POW((p2.y-p1.y),2)),2) AS shortest
+FROM point2d p1
+	JOIN point2d p2 ON p1.x != p2.x OR p1.y != p2.y
+ORDER BY shortest
+LIMIT 1;
