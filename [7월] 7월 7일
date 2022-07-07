@@ -1,0 +1,46 @@
+[1327] List the Products Ordered in a Period
+
+# join
+select p.product_name
+       , sum(o.unit) as unit
+from Products p
+      join Orders o on p.product_id = o.product_id
+where Left(order_date, 7) = '2020-02'
+group by p.product_name
+having sum(o.unit) >= 100
+
+# with 
+with summary as(
+select product_id
+      ,sum(unit) unit
+from orders
+where left(order_date,7)='2020-02' 
+group by product_id
+having unit>= 100
+)
+select p.product_name
+      ,s.unit
+from summary s
+     join products p on s.product_id = p.product_id
+
+[1350] Students With Invalid Departments
+
+# not in (규모가 클 시 해당 쿼리는 느려질 수 있음) 
+select id, name
+from students
+where department_id not in (select id 
+                            from departments)
+# left join 
+select s.id
+      ,s.name
+from students s
+     left join departments d on s.department_id = d.id
+where d.name is null
+
+
+[1378#] Replace Employee ID With The Unique Identifier
+select max(u.unique_id) unique_id
+      ,max(e.name) name
+from employees e
+     left join employeeuni u on e.id = u.id
+group by e.id
