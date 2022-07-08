@@ -1,0 +1,38 @@
+와우 싹 다 날라갔다. 
+
+[614#] Second Degree Follower
+
+# self-join
+SELECT f2.follower AS follower
+        ,COUNT(DISTINCT f1.follower) AS num -- 중복 제거 
+FROM follow f1 
+    JOIN follow f2 ON f1.followee = f2.follower
+GROUP BY f2.follower
+HAVING COUNT(f1.follower) >= 1 -- #2 
+ORDER BY 1 ASC
+
+------------------------------------------------------------------------------
+[626] Exchange Seats
+
+# case when 
+SELECT CASE WHEN id % 2 = 0 THEN id-1 -- 짝수면 아래로 이동 
+            WHEN id = (SELECT MAX(id) FROM Seat) THEN id -- 맥스면 그 자리 그대로 
+            WHEN id % 2 !=0 THEN id + 1 -- 홀수면 위로 이동
+        END AS "id"
+        , Student
+FROM seat 
+ORDER BY 1
+
+# case when 간략화 
+SELECT CASE WHEN id % 2 = 0 THEN id-1 
+            WHEN id % 2 != 0 AND id = (SELECT MAX(id) FROM Seat) THEN id 
+        ELSE id +1
+        END AS "id"
+        , Student
+FROM seat 
+ORDER BY 1
+
+# window functin 
+SELECT ROW_NUMBER() OVER() id, student
+FROM seat
+ORDER BY IF(MOD(id, 2) = 0, id-1, id+1) -- 왜 5 값이 영향을 받지 않지?
