@@ -1,13 +1,39 @@
 [1327] List the Products Ordered in a Period
 
-# join
-select p.product_name
-       , sum(o.unit) as unit
-from Products p
-      join Orders o on p.product_id = o.product_id
-where Left(order_date, 7) = '2020-02'
-group by p.product_name
-having sum(o.unit) >= 100
+# 첫 코드 (year and month)
+SELECT product_name
+		,SUM(unit) AS unit 
+FROM products p
+	LEFT JOIN orders o ON p.product_id = o.product_id
+WHERE YEAR(order_date) = 2020
+AND MONTH(order_date) = 2
+GROUP BY product_name
+HAVING SUM(unit) >= 100
+
+-- year 한다고 떼어서 와, month 한다고 떼어서 와 규모가 큰 데이터에서는 별로 좋지 않은 방법이지 않을까?
+
+# date_format
+SELECT product_name
+		,SUM(unit) AS unit 
+FROM products p
+	LEFT JOIN orders o ON p.product_id = o.product_id
+WHERE DATE_FORMAT(order_date,'%Y-%m') = '2020-02'
+GROUP BY product_name
+HAVING SUM(unit) >= 100
+
+-- where절에 어떤 조건을 주냐에 따라서 index를 탈지 full-scan을 할지 결정된다고 기억하는데
+-- Q1. 해당 방법에서도 index를 망가트릴 위험이 있는가? (date 타입 그대로 쓰니까 ㄱㅊ지 않을까..?) 
+-- Q2. date 타입에서 left를 하면 date or datetime 형식이 varchar로 변환되는가? 아니면 유지되는가? 
+   A2. 스터디원 분이 left, substr, instr 쓰면 string 형식으로 바뀐다고 하는데, 확실하지 않으시다 한다. 한번 더 찾아보자.
+
+# left 
+SELECT product_name
+		,SUM(unit) AS unit 
+FROM products p
+	LEFT JOIN orders o ON p.product_id = o.product_id
+WHERE left(order_date,7) = '2020-02'
+GROUP BY product_name
+HAVING SUM(unit) >= 100
 
 # with 
 with summary as(
@@ -23,6 +49,8 @@ select p.product_name
 from summary s
      join products p on s.product_id = p.product_id
 
+
+------------------------------------------------------------
 [1350] Students With Invalid Departments
 
 # not in (규모가 클 시 해당 쿼리는 느려질 수 있음) 
@@ -37,8 +65,9 @@ from students s
      left join departments d on s.department_id = d.id
 where d.name is null
 
-
+--------------------------------------------------------------
 [1378#] Replace Employee ID With The Unique Identifier
+
 select max(u.unique_id) unique_id
       ,max(e.name) name
 from employees e
