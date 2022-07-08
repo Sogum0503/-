@@ -11,6 +11,29 @@ GROUP BY f2.follower
 HAVING COUNT(f1.follower) >= 1 -- #2 
 ORDER BY 1 ASC
 
+# 다른 스터디원 풀이1
+SELECT f1.follower
+     , COUNT(DISTINCT f2.follower) num
+FROM Follow f1
+     JOIN Follow f2 ON f1.follower = f2.followee
+GROUP BY f1.follower
+ORDER BY f1.follower
+
+# 다른 스터디원 풀이2
+with summary as (
+                 select followee
+                        ,count(distinct follower)
+                 from follow
+                 group by followee
+                 having count(distinct follower) >= 1 )
+select s.followee
+      ,count(distinct f.follower) num
+from summary s 
+        join follow f on s.followee = f.followee
+group by s.followee
+having num >= 1 
+order by 1
+
 ------------------------------------------------------------------------------
 [626] Exchange Seats
 
@@ -35,4 +58,5 @@ ORDER BY 1
 # window functin 
 SELECT ROW_NUMBER() OVER() id, student
 FROM seat
-ORDER BY IF(MOD(id, 2) = 0, id-1, id+1) -- 왜 5 값이 영향을 받지 않지?
+ORDER BY IF(MOD(id, 2) = 0, id-1, id+1) 
+
