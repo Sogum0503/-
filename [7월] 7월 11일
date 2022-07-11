@@ -1,0 +1,60 @@
+# leetcode 문제풀이
+
+[1421#] NPV Queries
+
+SELECT Q.id,
+      Q.year, 
+      COALESCE(N.npv,0) AS npv
+FROM Queries Q 
+    LEFT JOIN NPV N ON Q.id = N.id 
+        AND Q.year = N.year
+
+[1435#] Create a Session Bar Chart
+
+SELECT '[0-5>' AS 'bin', SUM(duration/60 < 5) AS 'total'
+FROM Sessions
+UNION
+SELECT '[5-10>' AS 'bin', SUM(duration/60 >= 5 AND duration/60 < 10) AS 'total'
+FROM Sessions
+UNION
+SELECT '[10-15>' AS 'bin', SUM(duration/60 >= 10 AND duration/60 < 15) AS 'total'
+FROM Sessions
+UNION
+SELECT '15 or more' AS 'bin', SUM(duration/60 >= 15) AS 'total'
+FROM Sessions
+
+[1045] Customers Who Bought All Product
+
+SELECT customer_id
+FROM Customer 
+GROUP BY customer_id 
+HAVING COUNT(DISTINCT product_key) = (SELECT COUNT(product_key)
+                                     FROM Product)
+                                     
+[1070#] Product Sales Analysis III
+
+# where절 서브쿼리 
+SELECT product_id
+        ,year AS first_year
+        ,quantity
+        ,price
+FROM Sales 
+WHERE (product_id,year) IN (SELECT product_id,MIN(year)
+                             FROM Sales
+                             GROUP BY product_id)
+                             
+ # join 
+ 
+WITH temp AS (
+    SELECT product_id
+        , MIN(year) as min_year
+    FROM Sales
+    GROUP BY product_id)
+
+SELECT t.product_id
+        ,t.min_year AS first_year 
+        ,quantity
+        ,price
+FROM temp t 
+    LEFT JOIN Sales S ON t.product_id = S.product_id
+                    AND t.min_year = S.year
