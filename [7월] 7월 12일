@@ -1,0 +1,97 @@
+# leetcode 문제풀이 
+
+[1484] Group Sold Products By The Date
+풀이 과정 
+
+조건 1에 부합하기 위해서 sell_date로 group by를 해줌    
+  - product의 수는 count를 사용해서 집계    
+  - product의 이름은 group_concat을 이용해 붙여주기 
+조건 2를 만족하기 위해 group_concat에 order by를 추가로 이용하여 product를 asc로 정렬한다
+조건 3을 만족하기 위해 전체 테이블에 order by절을 이용해서 sell_date ASC로 정렬한다 
+
+SELECT sell_date
+		, COUNT(DISTINCT product) AS num_sold --조건 1 
+        , GROUP_CONCAT(DISTINCT product ORDER BY product) AS products -- 조건 1 / 조건 2 
+from Activities 
+GROUP BY sell_date -- 날짜 별로 그룹화 하기 
+ORDER BY sell_date -- 조건 3
+
+-----------------------------------------------------------
+## GROUP_CONCAT?
+
+# 컬럼 값들을 가로로 연결하기 
+SELECT GROUP_CONCAT(name) FROM employees
+
+King,Amanda,Silvia...
+
+# 컬럼 값들을 연결 시 구분자를 지정해 줄수있다. 
+SELECT GROUP_CONCAT(name separator '|') FROM employees 
+
+King|Amanda|Silvia...
+
+# 컬럼 값들에 대해 정렬을 지정해 줄 수 있다.
+SELECT GROUP_CONCAT(name order by department_id DESC) FROM employees 
+
+Amanda|Silvia|King...
+
+# 컬럼 값들에 대해 중복값 제거 및 정렬 순서 추가해서 연결하기
+SELECT GROUP_CONCAT(DISTINCT(department_id) order by name) FROM employees
+
+Silvia,King,Amanda...
+
+---------------------------------------------------------
+[1495#] Friendly Movies Streamed Last Month
+
+SELECT DISTINCT title
+FROM Content C
+    JOIN TVProgram T ON C.content_id = T.content_id 
+WHERE DATE_FORMAT(program_date,'%Y-%m') = '2020-06'
+AND Kids_content = 'Y'
+AND content_type = 'Movies'
+
+# join에서 조건주기
+SELECT DISTINCT title
+FROM Content C
+	INNER JOIN TVProgram T ON C.content_id = T.content_id
+		AND DATE_FORMAT(program_date, '%Y-%m') = "2020-06"
+		AND Kids_content = 'Y'
+		AND content_type = 'Movies'
+    
+---------------------------------------------------------------
+[1511#] Customer Order Frequency
+
+# join 3개 후 필터링 
+
+SELECT O.customer_id  
+        ,C.name
+FROM Orders O
+    JOIN Product P ON O.product_id = P.product_id 
+    JOIN Customers C ON O.customer_id = C.customer_id
+GROUP BY O.customer_id
+HAVING SUM(CASE WHEN DATE_FORMAT(order_date,'%Y-%m') = '2020-06' THEN quantity END * P.price) >= 100 
+AND SUM(CASE WHEN DATE_FORMAT(order_date,'%Y-%m')='2020-07' THEN quantity END * P.price) >= 100
+
+# with절
+with temp as(
+    select o.customer_id
+    from orders o
+         join product p on o.product_id =p.product_id
+    where date_format(o.order_date,'%Y-%m') ='2020-06'
+    group by o.customer_id
+    having sum(p.price * o.quantity) >= 100
+    
+    union all 
+    
+    select o.customer_id
+    from orders o
+         join product p on o.product_id =p.product_id
+    where date_format(o.order_date,'%Y-%m') =  '2020-07'
+    group by o.customer_id
+    having sum(p.price * o.quantity) >= 100)  
+    
+select t.customer_id
+    , c.name
+from temp t  
+    join customers c on t.customer_id = c.customer_id
+group by t.customer_id
+having count(t.customer_id) = 2
