@@ -95,3 +95,23 @@ from temp t
     join customers c on t.customer_id = c.customer_id
 group by t.customer_id
 having count(t.customer_id) = 2
+
+# with절 2 
+
+with temp as (
+	select o.customer_id
+		,date_format(o.order_date,'%Y-%m') as month 
+		,sum(p.price * o.quantity) as value 
+	from product p  
+		join orders o on p.product_id = o.product_id 
+	where date_format(o.order_date,'%Y-%m') in ('2020-06','2020-07')
+	group by o.customer_id, month 
+	having sum(p.rpice * o.quantity) >= 100
+	)
+
+select c.customer_id
+	,max(c.name) as name
+from summary s 
+	join customers c on s.customer_id = c.customer_id
+group by c.customer_id
+having count(distinct month) = 2 
