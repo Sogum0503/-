@@ -1,0 +1,47 @@
+# leetcode 문제풀이
+
+[1077#] Project Employees III
+
+# window function 
+
+with temp as (
+        select P.project_id
+                ,P.employee_id
+                ,rank() over(partition by P.project_id order by experience_years desc) as ex_rank
+        from  Project P 
+        join Employee E on P.employee_id = E.employee_id)
+
+select project_id  
+    , employee_id
+from temp 
+where ex_rank = 1
+
+[1098#] Unpopular Books
+
+# not in 
+select book_id
+        ,name
+from books 
+where available_from < '2019-05-23'
+and book_id not in (select book_id
+                    from orders 
+                    where dispatch_date between '2018-06-23' and '2019-06-23'
+                   group by book_id
+                    having sum(quantity) >= 10
+                   )
+
+
+# sub-query join
+select b.book_id
+      ,name
+from books b 
+      left join (select book_id
+                      , sum(quantity) total_quantity
+                 from orders
+                 where dispatch_date between '2018-06-23' and '2019-06-23'
+                 group by book_id) o 
+     ON b.book_id = o.book_id 
+where available_from < '2019-05-23'
+and (total_quantity < 10 or total_quantity is null)
+                
+
