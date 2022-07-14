@@ -1,0 +1,32 @@
+[1543#] Fix Product Name Format
+
+# 기본
+select lower(trim(product_name)) as product_name
+    , date_format(sale_date,'%Y-%m') as sale_date
+    , count(*) as total
+from sales 
+group by 1,2
+order by 1,2
+
+# 서브쿼리 -- 이점이 있나?
+select s.product_name
+    , s.sale_date 
+    , count(s.sale_id) as total 
+from (select sale_id
+            , lower(trim(product_name)) as product_name
+            ,date_format(sale_date,'%Y-%m') as sale_date
+      from Sales) s 
+group by 1,2
+order by 1,2
+
+## 사담
+sale_date랑  product_name에 함수를 사용하고 별칭을 붙였는데 원래 컬럼 이름 = 함수 사용 후 별칭 이라서 그런가
+group by에 product_name, sale_date를 넣으면 기존 컬럼 기준대로 정렬이 되는 것 같음.. 
+이럴 때는 그냥 1,2로 표현을 하던가 별칭을 다르게 하는 작업이 필요 하다는 것을 알게됨.  
+
+------------------------------------------------------------
+[1517#] Find Users With Valid E-Mails -- 정규표현식 리마인드
+
+SELECT * 
+FROM Users 
+WHERE mail REGEXP '^[a-zA-Z][a-zA-Z0-9_.-]*@leetcode[.]com$'
