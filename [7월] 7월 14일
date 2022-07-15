@@ -30,3 +30,17 @@ group by에 product_name, sale_date를 넣으면 기존 컬럼 기준대로 정�
 SELECT * 
 FROM Users 
 WHERE mail REGEXP '^[a-zA-Z][a-zA-Z0-9_.-]*@leetcode[.]com$'
+
+------------------------------------------------------------
+[1527] Patients With a Condition
+
+# REGEXP 
+select * 
+from patients 
+where conditions REGEXP '^DIAB1|\s*DIAB1' --\s는 공백을 표현 
+
+# LIKE 
+select *
+from patients 
+where conditions like 'DIAB1%'
+OR conditions like '% DIAB1%'
