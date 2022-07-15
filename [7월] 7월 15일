@@ -1,1 +1,48 @@
 
+[1107#] New Users Daily Count
+
+# date_sub(90) or date_add(-90)
+with temp as (
+        select user_id 
+                ,min(activity_date) as login_date
+        from traffic
+        where activity = 'login'
+        group by user_id) -- user별 첫 로그인한 날짜 
+        
+select login_date 
+    ,count(distinct user_id) as user_count
+from temp
+where login_date between date_sub('2019-06-30', interval 90 day) and '2019-06-30'
+group by login_date
+
+------------------------------------------------
+[1107#] New Users Daily Count
+
+# row_number or rank 
+
+with temp as (
+    select student_id 
+            ,course_id
+            ,grade
+            , row_number() over (partition by student_id order by grade desc, course_id asc) as num
+    from Enrollments) 
+    
+select student_id
+        ,course_id
+        ,grade
+from temp
+where num = 1 
+order by student_id
+
+# 다중행 서브쿼리 
+
+select student_id
+    , min(course_id) as course_id
+    , grade 
+from enrollments 
+where (student_id,grade) in (select student_id 
+                                    ,max(grade)
+                            from enrollments 
+                            group by student_id)
+group by student_id
+order by student_id
