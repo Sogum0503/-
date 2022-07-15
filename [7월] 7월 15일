@@ -18,7 +18,8 @@ group by login_date
 ------------------------------------------------
 [1107#] New Users Daily Count
 
-# row_number or rank 
+# row_number or rank or dense_rank
+-- grade값이 tie 하다면, course_id가 작은 것을 채택해라 했기 때문에 window function order by절로 표현할 수 있어서 세 함수 다 사용 가능 
 
 with temp as (
     select student_id 
