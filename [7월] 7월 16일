@@ -1,0 +1,39 @@
+[1565#] Unique Orders and Customers Per Month
+
+SELECT DATE_FORMAT(order_date,'%Y-%m') as month 
+        , count(distinct order_id) as order_count
+        , count(distinct customer_id) as customer_count
+FROM Orders
+WHERE invoice > 20
+GROUP BY 1
+
+# WITH 
+WITH sub AS (
+            SELECT order_id
+                 , DATE_FORMAT(order_date, '%Y-%m') order_month
+                 , customer_id
+            FROM Orders
+            WHERE invoice > 20
+            )
+SELECT order_month month
+     , COUNT(distinct order_id) order_count
+     , COUNT(distinct customer_id) customer_count
+FROM sub
+GROUP BY order_month
+
+[1571#] Warehouse Manager
+
+SELECT W.name AS warehouse_name
+        ,SUM((width*Length*Height)*units) AS volume 
+FROM Warehouse W 
+    LEFT JOIN Products P ON W.product_id = P.product_id 
+GROUP BY W.name
+
+[1581] Customer Who Visited but Did Not Make Any Transactions
+
+SELECT customer_id
+        ,COUNT(*) AS count_no_trans
+FROM Visits V
+    LEFT JOIN Transactions T ON V.visit_id = T.visit_id 
+WHERE transaction_id IS NULL
+GROUP BY 1;
