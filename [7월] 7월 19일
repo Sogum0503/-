@@ -8,3 +8,35 @@
 결국은 17일부터 지옥의 하루를 보냈고
 18일에는 응급실로 향했다 ^^ ... 
 하루 입원하니 괜찮아졌으니.. 다시 하루하루를 보내자 화이팅 ^^ 
+
+# 리트코드 
+
+[1571#] Warehouse Manager
+
+SELECT W.name AS warehouse_name
+        ,SUM((width*Length*Height)*units) AS volume 
+FROM Warehouse W 
+    LEFT JOIN Products P ON W.product_id = P.product_id 
+GROUP BY W.name
+
+--------------------------------------------------------------
+
+[1581] Customer Who Visited but Did Not Make Any Transactions
+
+SELECT customer_id
+        ,COUNT(*) AS count_no_trans
+FROM Visits V
+    LEFT JOIN Transactions T ON V.visit_id = T.visit_id 
+WHERE transaction_id IS NULL
+GROUP BY 1;
+
+----------------------------------------------------------------
+[1587] Bank Account Summary II
+
+SELECT name
+    , SUM(amount) balance
+FROM Users U
+    LEFT JOIN Transactions T 
+        ON U.account = T.account
+GROUP BY name 
+HAVING balance > 10000
