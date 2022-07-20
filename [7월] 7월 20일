@@ -1,1 +1,83 @@
+# 리트코드
 
+[1607#] Sellers With No Sales
+
+# NOT IN 
+SELECT seller_name
+FROM Seller
+WHERE seller_id NOT IN (SELECT DISTINCT seller_id
+                        FROM Orders 
+                       WHERE YEAR(sale_date) = '2020')
+ORDER BY seller_name
+
+# JOIN
+SELECT seller_name
+FROM Seller S
+    LEFT JOIN Orders O 
+    	ON S.seller_id = O.seller_id 
+        AND YEAR(sale_date) = '2020'
+WHERE O.seller_id IS NULL -- orders 테이블에 데이터가 없다면 해당 년도에 판매하지 않음을 의미 
+ORDER BY seller_name
+
+
+--------------------------------------------------------------------------------------------
+
+[1623#] All Valid Triplets That Can Represent a Country
+
+# 크로스조인
+SELECT  A.student_name AS member_A
+    , B.student_name AS member_B
+    , C.student_name AS member_C
+FROM SchoolA A, SchoolB B, SchoolC C
+WHERE A.student_id != B.student_id 
+AND A.student_id != C.student_id
+AND B.student_id != C.student_id 
+AND A.student_name != B.student_name
+AND A.student_name != C.student_name
+AND B.student_name != C.student_name
+
+# 조건 조인 
+SELECT A.student_name AS member_A
+        ,B.student_name AS member_B
+        ,C.student_name AS member_C
+FROM SchoolA A
+    JOIN SchoolB B ON A.student_id != B.student_id 
+                AND A.student_name != B.student_name
+    JOIN SchoolC C ON B.student_id != C.student_id
+                AND B.student_name != C.student_name
+WHERE A.student_id != C.student_id
+AND A.student_name != C.student_name
+
+
+--------------------------------------------------------------------------------------------
+
+[1149#] Article Views II
+
+SELECT DISTINCT viewer_id AS id 
+FROM Views 
+GROUP BY viewer_id, view_date
+HAVING COUNT(DISTINCT article_id) >= 2  -- viewer_id 4가 같은 article을 두 번 봄
+ORDER BY 1
+
+# 같은데 with으로 가독성 좋게
+
+WITH temp AS (
+            SELECT viewer_id AS id
+            FROM Views
+            GROUP BY viewer_id, view_date
+            HAVING COUNT(DISTINCT article_id) > 1 ) 
+
+SELECT DISTINCT id
+FROM temp 
+ORDER BY 1 ASC
+
+--------------------------------------------------------------------------------------------
+[1158] Market Analysis I
+
+SELECT U.user_id AS buyer_id
+        , U.join_date
+        , COUNT(order_id) AS orders_in_2019
+FROM Users U
+    LEFT JOIN Orders O ON U.user_id = O.buyer_id 
+                        AND YEAR(order_date) = '2019'
+GROUP BY u.user_id
