@@ -36,7 +36,7 @@ AND A.student_name != B.student_name
 AND A.student_name != C.student_name
 AND B.student_name != C.student_name
 
-# 조건 조인 
+# 조인 
 SELECT A.student_name AS member_A
         ,B.student_name AS member_B
         ,C.student_name AS member_C
@@ -59,7 +59,7 @@ GROUP BY viewer_id, view_date
 HAVING COUNT(DISTINCT article_id) >= 2  -- viewer_id 4가 같은 article을 두 번 봄
 ORDER BY 1
 
-# 같은데 with으로 가독성 좋게
+# with(가독성)
 
 WITH temp AS (
             SELECT viewer_id AS id
