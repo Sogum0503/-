@@ -1,0 +1,46 @@
+아... 스터디 끝나고 정리한다는게 시간이 너무 흘러버렸다 ^^;; 
+
+[1174#_MEDIUM] Immediate Food Delivery II
+
+WITH temp AS (
+    SELECT *
+            ,DENSE_RANK() OVER(PARTITION BY customer_id ORDER BY order_date) AS order_rank
+    FROM Delivery d 
+    GROUP BY customer_id, order_date)-- first_order
+    
+SELECT ROUND(100*SUM(CASE WHEN order_date = customer_pref_delivery_date THEN 1 ELSE 0 END)/COUNT(DISTINCT customer_id),2) AS immediate_percentage
+FROM temp
+WHERE order_rank = 1
+
+--------------------------------------------------------
+
+[1164#_MEDIUM] Product Price at a Given Date
+
+WITH df as (
+    SELECT *
+            ,MAX(change_date) OVER(PARTITION BY product_id) AS max_change_date
+    FROM Products P
+    WHERE change_date <= DATE('2019-08-16')
+    ) -- 19/08/16 이전의 price를 기준으로, max_change_date 컬럼을 추가해서 붙여줌 
+
+SELECT t.product_id
+        ,COALESCE(new_price,10) price
+FROM (SELECT DISTINCT product_id FROM Products) t 
+    LEFT JOIN df d ON t.product_id = d.product_id
+                AND d.max_change_date = d.change_date
+ORDER BY price DESC
+-- 그 다음 distinct된 product_id 테이블에 df를 left join 시켜줌. 
+-- 조인 조건은 t의 product_id가 d의 product_id와 같아야하고 
+--   d 테이블의 max_chage_date가 d의 change_date와 같아야함
+-- 그 다음 t 테이블을 기준으로 product_id를 출력하고, 3과 같이 19/08/16 데이터가 없는 경우 price에 null값이 있을 수 있는데, 
+    이런 경우는 10불이 기본 값이라 했으니 coalesce를 통해 null이면 10불 출력하라고 함
+    
+--------------------------------------------------------
+[1667] Fix Names in a Table
+
+SELECT user_id
+        ,CONCAT(UPPER(LEFT(name,1)),LOWER(SUBSTRING(name,2))) AS name
+FROM Users
+ORDER BY user_id
+
+# INITCAP은 MySQL에서 지원하지 않음
