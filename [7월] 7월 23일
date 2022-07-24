@@ -26,3 +26,16 @@ SELECT
     ROUND(AVG(end - start), 3) AS processing_time
 FROM CTE
 GROUP BY machine_id
+
+--------------------------------------------------------------------------------
+[1677#_EASY] Product's Worth Over Invoices
+
+SELECT name
+    ,COALESCE(SUM(rest),0) AS rest -- left join을 했기 때문에 NULL값 처리 꼭 ! 
+    ,COALESCE(SUM(paid),0) AS paid
+    ,COALESCE(SUM(canceled),0) AS canceled
+    ,COALESCE(SUM(refunded),0) AS refunded
+FROM Product P
+    LEFT JOIN Invoice I ON P.product_id = I.product_id -- JOIN하면 누락되는 product가 생길 수 있음. 
+GROUP BY name 
+ORDER BY name
