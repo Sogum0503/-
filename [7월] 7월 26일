@@ -1,0 +1,67 @@
+# Yammer Project 진행 중 
+
+### H3 —pattern
+
+- 시간 측면의 사용패턴 분석 (평일/공휴일/요일/시간대)
+    - 8월부터 많은 회사들이 휴가철을 맞이합니다. 휴가로 인한 일시적인 인게이지먼트 하락은 아닐까?
+        - 작년 데이터 추세는 어떠했는가?(2013년)
+        - 9월 2일 이후의 데이터 추세는 회복이 되었는가?
+- Device별 분석
+    - 가설 1 : 폰, 노트북, 타블랫의 디바이스별 engagement 흐름에 차이가 있는가?
+    - 가설 2 : Device와 OS 환경별에서 engagement의 차이가 있는가?
+        - query
+            
+            ```sql
+            SELECT DATE_TRUNC('week', occurred_at) AS week,
+                   COUNT(DISTINCT e.user_id) AS weekly_active_users,
+                   COUNT(DISTINCT CASE WHEN e.device IN ('macbook pro','macbook air','mac mini') THEN e.user_id ELSE NULL END) AS com_mac_os,
+                   COUNT(DISTINCT CASE WHEN e.device IN ('lenovo thinkpad','dell inspiron notebook','asus chromebook','dell inspiron desktop','acer aspire notebook','hp pavilion desktop','acer aspire desktop'
+                   ) THEN e.user_id ELSE NULL END) AS com_window_os,
+                   COUNT(DISTINCT CASE WHEN e.device IN('iphone 5','iphone 5s','iphone 4s') THEN e.user_id ELSE NULL END) AS phone_max_os,
+                   COUNT(DISTINCT CASE WHEN e.device IN('samsung galaxy s4','nexus 5','nokia lumia 635','htc one','samsung galaxy note','amazon fire phone') THEN e.user_id ELSE NULL END) AS phone_window_os,
+                   COUNT(DISTINCT CASE WHEN e.device IN('ipad air','ipad mini') THEN e.user_id ELSE NULL END) AS tablet_max_os,
+                   COUNT(DISTINCT CASE WHEN e.device IN('nexus 7','nexus 10','kindle fire','windows surface','samsung galaxy tablet') THEN e.user_id ELSE NULL END) As tablet_window_os
+            FROM tutorial.yammer_events e
+             WHERE e.event_type = 'engagement'
+               AND e.event_name = 'login'
+             GROUP BY 1
+             ORDER BY 1
+            LIMIT 100
+            ```
+            
+        - 그래프
+            
+            ![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/4c6754e7-676b-4ee9-8968-7b2f5538551c/Untitled.png)
+            
+            - 더욱 세분화 해보자. 아직 잘 모르겠음 ;;
+        - 디바이스 + OS별 그래프를 살펴봤을 때, 7.28~8.11 운영체제에 상관없이 둘 다 하락함. 이렇게 되면 운영체제의 문제가 아니고, 정말 디바이스 자체의 문제라고 볼 수 밖에없음.
+        
+        ![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/1c936ba2-0cf7-46f1-ab47-eebfa09b1d84/Untitled.png)
+        
+        - 추가 그래프를 보면 OS에 큰 차이 없이 폰과 타블렛에서 하락이 보임
+            - 하지만, 표본 수가 작아서 그래프가 많이 꺾이는 것 처럼 보일 수 있음.
+        - 특이하게 phone_window_os는 타 디바이스/운영체제와 다르게 max점을 한 주 빠르게 찍음(그 이후로 쭉 하락 중)
+    - 가설 2.1. : OS별 engagement의 차이가 있는가?
+        - query
+            
+            ```sql
+            SELECT DATE_TRUNC('week', occurred_at) AS week,
+                   COUNT(DISTINCT e.user_id) AS weekly_active_users,
+                   COUNT(DISTINCT CASE WHEN e.device IN ('macbook pro','macbook air','mac mini','iphone 5','iphone 5s','iphone 4s','ipad air','ipad mini') THEN e.user_id ELSE NULL END) AS mac_os ,
+                   COUNT(DISTINCT CASE WHEN e.device IN ('lenovo thinkpad','dell inspiron notebook','asus chromebook','dell inspiron desktop','acer aspire notebook','hp pavilion desktop','acer aspire desktop'
+                   ,'samsung galaxy s4','nexus 5','nokia lumia 635','htc one','samsung galaxy note','amazon fire phone','nexus 7','nexus 10','kindle fire','windows surface','samsung galaxy tablet') THEN e.user_id ELSE NULL END) AS window_os
+            FROM tutorial.yammer_events e
+             WHERE e.event_type = 'engagement'
+               AND e.event_name = 'login'
+             GROUP BY 1
+             ORDER BY 1
+            LIMIT 100
+            ```
+            
+        - 그래프
+            
+            ![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/212631bf-83ef-49f5-bb16-17c6780eb6e5/Untitled.png)
+            
+        - Window와 Mac 환경으로 나누어 WAU를 살펴보았습니다. 그래프를 보면, 7월 28일을 기준으로 그 이전의 데이터는 window환경이 더 잘 설명하고 ios 환경의 유저들의 engagement는 꾸준히 상승중인 것을 파악할 수 있습니다.
+        - 문제는 7월 28일에 정점을 찍고 나서, window 유저들은 하락하다 8월 11일 쯔음 약간 상승하는 것을 알 수 있는데, ios 유저들은 8월 11일 까지 꾸준히 하락하는 추세를 나타내고 있다.
+    - 가설 3 : 특정 브랜드에서 문제가 발생했는가?
