@@ -1,0 +1,30 @@
+# Yammer 
+
+가설 5,6 쿼리 작성 및 시각화 완료
+
+회고 
+- SaaS의 특징을 생각해서 다시 한 번 가설을 점검하고 분석해보기 
+- email 구간에서 어떠한 engagement 하락이 발생하지는 않았을까 분석해보기 
+
+# 리트코드 
+[1741_EASY] Find Total Time Spent by Each Employee
+
+SELECT event_day AS day
+        ,emp_id
+        ,SUM(out_time-in_time) AS total_time
+FROM Employees 
+GROUP BY day, emp_id 
+ORDER BY day
+
+[1731#_EASY] The Number of Employees Which Report to Each Employee
+
+# self-join
+SELECT M.employee_id
+    ,MAX(M.name) AS name 
+    ,COUNT(DISTINCT E.employee_id) AS reports_count
+    ,ROUND(AVG(E.age),0)AS average_age
+FROM Employees M
+    LEFT JOIN Employees E ON M.employee_id = E.reports_to 
+GROUP BY M.employee_id
+HAVING COUNT(DISTINCT E.reports_to) > 0 
+ORDER BY 1
