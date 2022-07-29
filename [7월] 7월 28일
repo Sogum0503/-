@@ -1,4 +1,101 @@
 # 야머_프로젝트 
+### H1. Holiday의 영향으로 engagement가 잠시 하락한 것은 아닐까?
+
+      events 테이블은 2014년 5월부터 8월 31일까지의 데이터밖에 없기 때문에 직접적으로 ‘2013년 추세와 2014년 추세를 분석하여 holiday의 영향을 파악하자’는 가설에 대한 검증이 어렵습니다.
+
+     이에 Yammer은 오피스용 소프트웨어이기 때문에 Holiday 기간에는 신규 가입자와 활성화된 가입자의 수가 낮아질 것으로 예상됩니다. 신규 가입자가 활성화된 가입자가 되기 위해서는 로그인을 적어도 한 번 한 사람(state값이 ‘active’)가 되어야 하기 때문에 신규 가입자→활성화된 가입자 수의 하락은 인게이지먼트에 직접적인 영향을 미칠 것으로 예상되기 때문에 이를 중점으로 가입자수→활성화된 가입자수의 연도별 변화를 살펴보겠습니다. 
+
+**H1.1. Holiday의 영향으로 신규 가입자 수, 활성화된 가입자의 수가 하락할 수 있지 않을까?** 
+
+- query
+    
+    ```sql
+    SELECT DATE_TRUNC('week',created_at) AS week,
+           COUNT(*) AS all_users,
+           COUNT(CASE WHEN activated_at IS NOT NULL THEN u.user_id ELSE NULL END) AS activated_users,
+           100*ROUND(COUNT(CASE WHEN activated_at IS NOT NULL THEN u.user_id ELSE NULL END)/COUNT(*)::DECIMAL,2) AS pc 
+    FROM tutorial.yammer_users u
+     WHERE created_at >= '2014-06-01' -- 날짜만 변환 
+       AND created_at < '2014-09-01' -- 날짜만 변환 
+     GROUP BY 1
+     ORDER BY 1
+    ```
+    
+
+![2013년](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/7bc1b22f-fbb6-4bf2-bb0b-825747c0fa34/Untitled.png)
+
+2013년
+
+![2013년 8월5일 ](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/59a99498-a695-405d-b532-83a30ef8995e/Untitled.png)
+
+2013년 8월5일 
+
+![2014년](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/83a123a6-be09-4bce-bac6-91286203f0f9/Untitled.png)
+
+2014년
+
+![2014년 8월 4일 ](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/8e02f348-4065-4cd5-81e6-2372d41d456d/Untitled.png)
+
+2014년 8월 4일 
+
+     해당 그래프를 살펴 보았을 때, 동일 구간에서 2013년과 2014년이 동일한 추세를 띄고 있지 않습니다. 2013년은 7월 15일 구간까지 상승세를 이어오다가 그 후 들쑥날쑥한 추세를 띄지만, 2014년은 7월 28일까지 쭉 상승하는 추세를 보이다가 8월 4일 구간에서 급격하게 하락하는 것을 파악할 수 있습니다. 이는 비단 all_users뿐만 아니라 activaated_users의 값도 동일하게 하락했기 때문에 2013년의 추세와 같다 말 하기는 어렵습니다. 
+
+     이러한 결과를 통해 알 수 있는 것은 2014년 7월 마지막주 - 8월 첫재 주의 engagement 하락의 주된 원인이 Holiday로 인한 것이 아닐 것이라는 추론을 해볼 수 있습니다. 
+
+### **H2. Acquisition → Activated까지 이어지는 구간에서 결함이 발생하여 engagement가 하락한 것은 아닐까?**
+
+     engagement, 즉 active_users는 해당 기간에 로그인을 포함해서 하나의 활동을 한 사람을 일컫습니다. 그렇다면 해당 기간에 가입 후(sign-up)  activated로 가는 과정에서 에러가 발생하여 engagement를 발생시키지 못해 해당 구간에서 engagement가 하락한 것은 아닐까?를 예상해 볼 수 있습니다.
+
+- query
+    
+    ```sql
+    SELECT DATE_TRUNC('day',created_at) AS day,
+           COUNT(*) AS all_users,
+           COUNT(CASE WHEN activated_at IS NOT NULL THEN u.user_id ELSE NULL END) AS activated_users
+    FROM tutorial.yammer_users u
+     WHERE created_at >= '2014-04-28' 
+       AND created_at < '2014-09-01' 
+     GROUP BY 1
+     ORDER BY 1
+    ```
+    
+    ![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/205bd900-5f10-40b1-8fba-80884a3e33fa/Untitled.png)
+    
+
+![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/84d8fb90-0d56-4d54-918a-e31c060f6b19/Untitled.png)
+
+![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/90f2c86b-6c81-47bf-ae73-1c33155bab94/Untitled.png)
+
+    
+
+     만약 Acquisition → Activated까지 가는 과정에서 결함이 발생하였다면, all_users와 activated_user가 서로 다른 추세를 띄어야 합니다. 예를들면 all_users는 계속 올라가지만, activated_users는 낮아지는 모양처럼 말이죠. 하지만 해당 그래프를 보았을 때 두 추세선이 동일한 추세를 띄고 있는 것을 확인할 수 있습니다. 
+
+     이러한 결과를 통해 알 수 있는 것은, Acquisition → Activated로 가는 과정에서 특별한 결함이 발생하지 않았음을 말합니다.  
+
+### H3. sing-up 자체에 결함이 발생하여 신규 유입자 수가 줄고, engagement가 하락한 것은 아닐까?
+
+     Acquisition → Activated로 가는 과정에서 문제가 없었더라면, 그 전 단계인 sign-up 단계 자체에서 문제가 발생하여 신규 유입자 수가 줄고 이로인해 engagement가 하락한 것은 아닐까? 를 예상해 볼 수 있습니다.
+
+- query
+    
+    ```sql
+    SELECT DATE_TRUNC('week', occurred_at) AS WEEK,
+            COUNT(DISTINCT CASE WHEN event_type = 'signup_flow' THEN user_id ELSE NULL END) AS signup,
+            COUNT(DISTINCT CASE WHEN event_type = 'engagement' THEN user_id ELSE NULL END) AS engagemented
+    FROM tutorial.yammer_events
+    GROUP BY 1 
+    ORDER BY 1
+    ```
+    
+
+![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/0a873910-c18b-48c6-bfae-1e447fc0ba78/Untitled.png)
+
+     7월 28일 전 까지는 engagement와 signup_flow 모두 함께 상승하는 추세를 보이고 있습니다. 하지만 7월 28일 → 8월 4일 구간에서 engagement와 signup-flow 모두 급격하게 하락하는 추세를 보이고 있습니다. 
+
+     해당 그래프에서 두가지를 추론해 볼 수 있겠습니다.
+
+1. 가설 2를 통해 확인한 것과 같이 신규 유입자 수 자체에는 문제가 없었습니다. 또한, 이번 그래프를 살펴보았을 때 sign-up은 8월 4일 구간에서 하락했다가 다시 상승하는 추세를 보이고 있지만 engagement는 지속적으로 하락하는 추세를 보이고 있습니다. 이가 시사하는 바는 신규 유저가 아닌 기존 유저 내에서 어떠한 문제가 발생했음을 예측할 수 있습니다.
+2. 비록 signup-flow가 8월 4일에 하락했다가 다시 상승하는 추세를 보인다고 해도, 이 또한 분석할 가치가 있습니다. signup 과정 자체에 어떠한 문제가 있지는 않았는지 살펴볼 필요가 있습니다.
 
 # 리트코드
 [1212#_MEDIUM]Team Scores in Football Tournament
