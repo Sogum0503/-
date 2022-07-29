@@ -1,3 +1,25 @@
 # 야머_프로젝트 
 
 # 리트코드
+[1212#_MEDIUM]Team Scores in Football Tournament
+
+with Point_summary as (
+    select host_team, guest_team,
+        case when host_goals = guest_goals then 1
+            when host_goals > guest_goals then 3 else 0 end as host_score,
+        case when host_goals = guest_goals then 1
+            when host_goals < guest_goals then 3 else 0 end as guest_score
+    from Matches
+), temp as (
+    select T.team_id, T.team_name,
+    COALESCE(SUM(case when T.team_id = P.host_team then host_score
+             when T.team_id = P.guest_team then guest_score
+       end),0) as num_points
+    from Teams T left join Point_summary P
+    on T.team_id = P.host_team or T.team_id = P.guest_team
+    group by 1,2
+)
+
+select team_id, team_name, num_points 
+from temp
+order by 3 desc, 1 asc
