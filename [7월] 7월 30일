@@ -1,0 +1,53 @@
+Recency 
+
+# 고객 월별 재구매 주기 
+SELECT DATE_FORMAT(last_order_date,'%Y-%m') as month,
+      COUNT(DISTINCT customer_id) as cnt_customers 
+FROM customer_stats
+GROUP BY month 
+ORDER BY month
+
+# 고객 일별 재구매 주기 
+-- max(day_diff) = 363 
+-- 일반적으로 계급의 수는 10개 전후로 선택됨. 
+   -- 10개로 선택하게 되면 월별 재구매 주기와 같기 때문에, 현재 상황은 Recency값을 구하는 것이기 때문에 300일 이후 값은 크게 중요치 않다 판단되어 10일 단위로 하되, 300일 이상으로 뭉쳐놓음 
+   
+with temp as (
+SELECT DISTINCT customer_id
+    ,DATEDIFF('2020-12-30',last_order_date) as day_diff 
+FROM customer_stats
+ORDER BY customer_id) 
+
+SELECT 
+    COUNT(CASE WHEN day_diff >0 and day_diff <10 THEN customer_id END) as '10'
+  , COUNT(CASE WHEN day_diff >10 and day_diff <20 THEN customer_id END) as '20'
+  , COUNT(CASE WHEN day_diff >20 and day_diff <30 THEN customer_id END) as '30'
+  , COUNT(CASE WHEN day_diff >30 and day_diff <40 THEN customer_id END) as '40'
+  , COUNT(CASE WHEN day_diff >40 and day_diff <50 THEN customer_id END) as '50'
+  , COUNT(CASE WHEN day_diff >50 and day_diff <60 THEN customer_id END) as '60'
+  ,COUNT(CASE WHEN day_diff >60 and day_diff <70 THEN customer_id END) as '70'
+  ,COUNT(CASE WHEN day_diff >70 and day_diff <80 THEN customer_id END) as '80'
+  , COUNT(CASE WHEN day_diff >80 and day_diff <90 THEN customer_id END) as '90'
+  , COUNT(CASE WHEN day_diff >90 and day_diff <100 THEN customer_id END) as '100'
+  , COUNT(CASE WHEN day_diff >100 and day_diff <110 THEN customer_id END) as '110'
+  , COUNT(CASE WHEN day_diff >110 and day_diff <120 THEN customer_id END) as '120'
+  , COUNT(CASE WHEN day_diff >120 and day_diff <130 THEN customer_id END) as '130'
+  , COUNT(CASE WHEN day_diff >130 and day_diff <140 THEN customer_id END) as '140'
+  , COUNT(CASE WHEN day_diff >140 and day_diff <150 THEN customer_id END) as '150'
+  , COUNT(CASE WHEN day_diff >150 and day_diff <160 THEN customer_id END) as '160'
+  , COUNT(CASE WHEN day_diff >160 and day_diff <170 THEN customer_id END) as '170'
+  , COUNT(CASE WHEN day_diff >170 and day_diff <180 THEN customer_id END) as '180'
+  , COUNT(CASE WHEN day_diff >180 and day_diff <190 THEN customer_id END) as '190'
+  , COUNT(CASE WHEN day_diff >190 and day_diff <200 THEN customer_id END) as '200'
+  , COUNT(CASE WHEN day_diff >200 and day_diff <210 THEN customer_id END) as '210'
+  , COUNT(CASE WHEN day_diff >210 and day_diff <220 THEN customer_id END) as '220' 
+  , COUNT(CASE WHEN day_diff >220 and day_diff <230 THEN customer_id END) as '230'
+  , COUNT(CASE WHEN day_diff >230 and day_diff <240 THEN customer_id END) as '240'
+  , COUNT(CASE WHEN day_diff >240 and day_diff <250 THEN customer_id END) as '250'
+  , COUNT(CASE WHEN day_diff >250 and day_diff <260 THEN customer_id END) as '260'
+  , COUNT(CASE WHEN day_diff >260 and day_diff <270 THEN customer_id END) as '270'
+  , COUNT(CASE WHEN day_diff >270 and day_diff <280 THEN customer_id END) as '280'
+  , COUNT(CASE WHEN day_diff >280 and day_diff <290 THEN customer_id END) as '290'
+  , COUNT(CASE WHEN day_diff >290 THEN customer_id END) as '300_after'
+FROM temp
+
