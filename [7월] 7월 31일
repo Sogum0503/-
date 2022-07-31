@@ -1,0 +1,32 @@
+[1757_EASY] Recyclable and Low Fat Products
+
+SELECT product_id
+FROM Products 
+WHERE low_fats = 'Y' 
+AND recyclable = 'Y'
+
+--------------------------------------------------
+[1777#_EASY] Product's Price for Each Store
+
+SELECT product_id,
+    SUM(CASE WHEN store = 'store1' THEN price END) as 'store1',
+    SUM(CASE WHEN store = 'store2' THEN price END) as 'store2',
+    SUM(CASE WHEN store = 'store3' THEN price END) as 'store3'
+FROM Products 
+GROUP BY Product_id 
+ORDER BY Product_id
+
+---------------------------------------------------
+[1789#_EASY] Primary Department for Each Employee
+
+SELECT employee_id, department_id
+FROM Employee
+GROUP BY employee_id
+having count(department_id) = 1 
+
+UNION 
+
+SELECT employee_id,department_id
+FROM Employee
+WHERE primary_flag = 'Y'
+GROUP BY employee_id
