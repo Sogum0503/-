@@ -30,3 +30,11 @@ SELECT
     price
 FROM Products 
 UNPIVOT EXCLUDE NULLS (price FOR store IN (store1 AS 'store1', store2 AS 'store2', store3 AS 'store3'));
+
+---------------------------------------------------------------------------------
+[1809#] Ad-Free Sessions
+select session_id 
+from playback p 
+    left join ads a on p.customer_id = a.customer_id
+                    and a.timestamp between p.start_time and p.end_time 
+where a.timestamp is null
