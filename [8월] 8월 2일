@@ -1,5 +1,6 @@
 [1795#] Rearrange Products Table
 
+# Mysql 
 select product_id ,
         'store1' store,
         store1 as 'price'
@@ -21,3 +22,11 @@ select product_id,
         store3 as 'price'
 from products 
 where store3 is not null
+
+# oracle unpivot 
+SELECT 
+    product_id,
+    store,
+    price
+FROM Products 
+UNPIVOT EXCLUDE NULLS (price FOR store IN (store1 AS 'store1', store2 AS 'store2', store3 AS 'store3'));
