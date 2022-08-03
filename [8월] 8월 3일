@@ -1,0 +1,78 @@
+[1821#_EASY] Find Customers With Positive Revenue this Year
+
+select customer_id
+from customers
+where year = 2021
+group by customer_id
+having sum(revenue) > 0
+로...풀었는데! 함정이 있었다. 
+
+(customer_id, year) is the primary key for this table.
+이렇게 되면 결국은 customer_id당 하나의 year값을 가지기 때문에, 아래와 같이 문제를 풀면 된다.
+
+select customer_id
+from customers 
+where year = 2021 and revenue > 0
+
+------------------------------------------------------------------
+[1285#_MEDIUM] Find the Start and End Number of Continuous Ranges
+
+1. 가살 테이블 만들기 
+
+    row_number 함수를 사용해서 index 값을 생성하고, log_id - index 값을 빼서 연속적인 logs_id는 무엇이 있는지 찾기 
+
+예시 : 
+
+해당 테이블에서의 값은 1부터 시작되는 정수의 값을 가지게 된다. 
+
+
+1,2,3,5,6,7,10,11,12...<- 이런 값을 가진 테이블이 있게 된다면
+1,2,3,4,5,6,7,8,9...<- 이 값들의 index 값은  가 될 것이다 
+0,0,0,1,1,1,3,3,3 <- 이에 만약 연속적인 값을 가지게 된다면 n-idx의 값은 서로 동일한 값을 가지게 된다 
+                                (연속적인 값 : 1씩 커짐, idx 값 : 1씩 커짐) 
+
+with temp as 
+	( select log_id,
+    		log_id - row_number() over(partition by log_id) as idx 
+      from logs)
+
+
+2. log_id의 최소값과 최대값을 찾는 쿼리 만들기 
+
+with temp as 
+	( select log_id,
+    		log_id - row_number() over(partition by log_id) as idx 
+      from logs)
+      
+select min(log_id) as start_id,
+		max(log_id) as end_id 
+from cte 
+group by idx
+order by 1
+
+# solution 2 
+
+with start as (
+	select log_id as start_id
+    from logs 
+    where (log_id-1) not in (select log_id from logs)),
+    
+end as (
+	select log_id as end_id
+    from logs 
+    where (log_id+1) not in (select log_id from logs)) 
+
+select start_id, 
+		end_id 
+from start 
+	join end on start.start_id <= end.end_id
+group by start_id
+
+------------------------------------------------------------------
+[1308#_MEDIUM] Running Total for Different Genders
+
+select gender, 
+        day,
+        sum(score_points) over (partition by gender order by day) as total
+from scores 
+order by 1,2
