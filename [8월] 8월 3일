@@ -22,9 +22,7 @@ where year = 2021 and revenue > 0
     row_number 함수를 사용해서 index 값을 생성하고, log_id - index 값을 빼서 연속적인 logs_id는 무엇이 있는지 찾기 
 
 예시 : 
-
 해당 테이블에서의 값은 1부터 시작되는 정수의 값을 가지게 된다. 
-
 
 1,2,3,5,6,7,10,11,12...<- 이런 값을 가진 테이블이 있게 된다면
 1,2,3,4,5,6,7,8,9...<- 이 값들의 index 값은  가 될 것이다 
@@ -36,8 +34,7 @@ with temp as
     		log_id - row_number() over(partition by log_id) as idx 
       from logs)
 
-
-2. log_id의 최소값과 최대값을 찾는 쿼리 만들기 
+2. log_id의 최소값과 최대값을 찾는 쿼리 만들기 + 최종 
 
 with temp as 
 	( select log_id,
@@ -49,6 +46,7 @@ select min(log_id) as start_id,
 from cte 
 group by idx
 order by 1
+
 
 # solution 2 
 
@@ -71,8 +69,17 @@ group by start_id
 ------------------------------------------------------------------
 [1308#_MEDIUM] Running Total for Different Genders
 
+# window function 
 select gender, 
         day,
         sum(score_points) over (partition by gender order by day) as total
 from scores 
 order by 1,2
+
+# self-join
+SELECT s1.gender, s1.day, SUM(s2.score_points) AS total
+FROM Scores AS s1,
+     Scores AS s2
+WHERE s1.gender = s2.gender AND s2.day <= s1.day
+GROUP BY s1.gender, s1.day
+ORDER BY s1.gender, s1.day
