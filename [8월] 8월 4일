@@ -1,0 +1,25 @@
+# 리트코드 
+
+[1853#_EASY] Convert Date Format
+
+SELECT DATE_FORMAT(day,'%W, %M %e, %Y') as day
+FROM Days
+
+----------------------------------------------------------------------------
+[1873_EASY] Calculate Special Bonus
+
+SELECT employee_id
+     , CASE WHEN LEFT(name, 1) <> 'M' AND MOD(employee_id, 2) =1 THEN salary
+            ELSE 0 END bonus
+FROM Employees
+GROUP BY 1
+ORDER BY employee_id
+
+-----------------------------------------------------------------------------
+[1890_EASY] The Latest Login in 2020
+
+SELECT user_id
+     , MAX(time_stamp) last_stamp 
+FROM Logins
+WHERE YEAR(time_stamp) = 2020
+GROUP BY 1
