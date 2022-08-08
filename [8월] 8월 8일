@@ -1,0 +1,38 @@
+[1364#_MEIDUM] Number of Trusted Contacts of a Customer
+
+SELECT I.invoice_id, 
+        C.customer_name,
+        I.price,
+        COUNT(DISTINCT contact_name) as 'contacts_cnt',
+        SUM(CASE WHEN contact_email IN (SELECT email FROM Customers) THEN 1 ELSE 0 END) AS 'trusted_contacts_cnt'
+FROM Invoices I
+    JOIN Customers C ON I.user_id = C.customer_id
+    LEFT JOIN Contacts O ON C.customer_id = O.user_id
+GROUP BY I.invoice_id, C.customer_name, I.price;
+
+---------------------------------------------------------------
+
+[1355#_MEDIUM]. Activity Participants
+# window function -- count 
+with temp as (
+        select activity
+                ,count(id) over(partition by activity) as cnt
+        from friends )
+        
+select distinct activity 
+from temp
+where cnt != (select max(cnt) from temp)
+and cnt != (select min(cnt) from temp )
+
+# dense_rank()
+with temp as (
+            select activity,
+                    dense_rank() over(order by count(id) ASC) as min_rnk,
+                    dense_rank() over(order by count(id) DESC) as max_rnk
+            from friends
+            group by activity) 
+
+select activity
+from temp 
+where min_rnk != 1 
+and max_rnk != 1
