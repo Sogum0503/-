@@ -1,0 +1,6 @@
+[2026#_EASY] Low-Quality Problems
+
+select problem_id
+from problems
+where likes/(likes+ dislikes)*100 < 60
+order by 1
