@@ -4,3 +4,43 @@ select problem_id
 from problems
 where likes/(likes+ dislikes)*100 < 60
 order by 1
+--------------------------------------
+
+[2072#_EASY] The Winner University
+
+WITH temp AS (
+    SELECT
+        (SELECT COUNT(student_id) FROM NewYork WHERE score >= 90) AS NYU,
+        (SELECT COUNT(student_id) FROM California WHERE score >= 90) AS UC)
+
+SELECT (CASE WHEN NYU > UC THEN "New York University"
+            WHEN UC > NYU THEN "California University"
+        ELSE "No Winner" 
+        END) AS 'Winner'
+FROM temp
+
+주저리 
+- 이 문제가 어려웠다기 보다는 SELECT 절에 저렇게도 가능하구나!라는 것을 배울 수 있었다.
+  꼭 FROM을 넣지 않고도 가능하구나, 결과가 출력되니까 가능한거구나 라는걸 알 수 있었음. 
+  
+  --------------------------------------
+[2082#_EASY] The Number of Rich Customers
+
+# 간단히
+select count(distinct customer_id) rich_count
+from store
+where amount > 500 
+
+주저리 : 어차피 500불이 넘는 bill을 하나 이상 가진 고객을 count 하는게 해당 문제의 조건이였음.
+         그런데 테이블 구조를 보면 bill_id가 primary key이기 때문에 where절에 amount > 500을 한 다음 customer_id를 distinct하게 count하면 되는 문제라 생각함. 
+
+# 보수
+with temp as (
+select customer_id
+from store 
+where amount > 500 
+group by bill_id
+having count(bill_id) >= 1 )
+
+select count(distinct customer_id) as rich_count
+from temp
