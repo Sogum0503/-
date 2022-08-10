@@ -33,3 +33,13 @@ having sum(product_name='A') >= 1
 and sum(product_name = 'B') >= 1
 and sum(product_name = 'C') = 0 
 order by 1
+
+----------------------------------------------------------------
+[2329#_EASY] Product Sales Analysis V
+
+select s.user_id,
+      sum(s.quantity * p.price) spending 
+from sales s 
+    left join product p on s.product_id = p.product_id 
+group by 1 
+order by spending desc, user_id asc 
