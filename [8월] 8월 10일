@@ -1,0 +1,35 @@
+[1393_MEDIUM] Capital Gain/Loss
+
+select stock_name
+        , sum(case when operation = 'Sell' then price end) - sum(case when operation = 'Buy' then price end) as capital_gain_loss
+from stocks 
+group by stock_name
+
+----------------------------------------------------------------
+
+[1398#_MEDIUM] Customers Who Bought Products A and B but Not C
+
+# solution 1
+
+select customer_id, customer_name
+from customers
+where customer_id in (select customer_id from orders where product_name = 'A')
+and customer_id in (select customer_id from orders where product_name = 'B')
+and customer_id not in (select customer_id from orders where product_name = 'C')
+order by customer_id
+
+# solution 2 
+- 배운점 : True False를 이용한 집계 
+
+Q. count과 min은 값이 출력이 안됨 
+ -- min 값은 여러개가 됨 (각 조건당 True는 1개기 때문에 count(max) =는 1로 고정, 하지만 false는 한 조건당 2~3개의 0값을 출력하기 때문에 특정 min 값을 선택해야 하는지 sql 서버가 판단할 수 없음) 
+ --  count도 비슷함. 1과 0값이 여러개인데 뭘 count해야하는지 지정하지 않아서 결과를 출력할 수 없음. 
+
+select c.customer_id, c.customer_name 
+from orders o
+    left join customers c on o.customer_id = c.customer_id 
+group by c.customer_id 
+having sum(product_name='A') >= 1
+and sum(product_name = 'B') >= 1
+and sum(product_name = 'C') = 0 
+order by 1
