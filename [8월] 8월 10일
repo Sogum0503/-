@@ -43,3 +43,12 @@ from sales s
     left join product p on s.product_id = p.product_id 
 group by 1 
 order by spending desc, user_id asc 
+
+----------------------------------------------------------------
+[2339#_EASY] All the Matches of the League
+
+select h.team_name as home_team,
+    a.team_name as away_team
+from teams h
+    cross join teams a on h.team_name != a.team_name
+group by 1,2
