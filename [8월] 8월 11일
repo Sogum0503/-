@@ -18,3 +18,12 @@ select e.left_operand
 from expressions e 
     join variables v1 on e.left_operand = v1.name 
     join variables v2 on e.right_operand = v2.name
+
+---------------------------------------------------------------
+[1445#_MEDIUM] Apples & Oranges
+
+select sale_date,
+        (sum(case when fruit = 'apples' then sold_num else 0 end)-sum(case when fruit = 'oranges' then sold_num else 0 end)) as diff 
+from sales 
+group by sale_date
+order by sale_date
