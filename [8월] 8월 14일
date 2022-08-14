@@ -8,3 +8,40 @@ where b.id > a.id
 and a.x_value != b.x_value
 and a.y_value != b.y_value
 order by area desc, p1, p2
+
+------------------------------------------------------------------------
+[1468#_MEDIUM] Calculate Salaries
+with summary as(
+select *
+      ,max(salary) over(partition by company_id) max_sal
+from salaries
+), summary2 as(
+select *
+      ,(case when max_sal > 10000 then salary*(1- 0.49)
+             when max_sal >= 1000 and max_sal <= 10000 then salary*(1-0.24)
+             else salary
+        end) as tax_sal
+from summary
+)
+
+select company_id
+      ,employee_id
+      ,employee_name
+      ,round(tax_sal,0)  as salary
+from summary2
+
+------------------------------------------------------------------------
+[1501#_MEDIUM] Countries You Can Safely Invest In
+
+with summary as(
+select c.caller_id
+      ,c.duration
+      ,ct.name country
+from calls c
+     left join person p on p.id in (c.caller_id, c.callee_id) 
+     left join country ct on ct.country_code = left(p.phone_number,3)
+)
+select country
+from summary
+group by 1
+having avg(duration) > (select avg(duration) from calls)
