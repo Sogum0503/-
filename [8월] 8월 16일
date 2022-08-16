@@ -1,6 +1,6 @@
 리트코드 
 
-1501. Countries You Can Safely Invest In
+[1501#_MEDIUM] Countries You Can Safely Invest In
 
 WITH sub AS (
              SELECT DISTINCT c.name
@@ -14,3 +14,20 @@ WITH sub AS (
 SELECT name country
 FROM sub
 WHERE global_avg < country_avg
+
+----------------------------------------------------------------------------------------
+[1532#_MEDIUM] The Most Recent Three Orders
+SELECT c.name customer_name
+     , c.customer_id
+     , order_id
+     , order_date
+FROM (
+      SELECT DENSE_RANK() OVER (PARTITION BY customer_id ORDER BY order_date desc) rnk
+           , order_id
+           , order_date
+           , customer_id
+      FROM Orders
+      ) sub
+      LEFT JOIN Customers c ON sub.customer_id = c.customer_id
+WHERE rnk BETWEEN 1 AND 3
+ORDER BY customer_name, customer_id, order_date desc
