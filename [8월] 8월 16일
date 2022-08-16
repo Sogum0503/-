@@ -1,2 +1,16 @@
 리트코드 
 
+1501. Countries You Can Safely Invest In
+
+WITH sub AS (
+             SELECT DISTINCT c.name
+                  , AVG(duration) OVER() global_avg
+                  , AVG(duration) OVER (PARTITION BY c.name) country_avg
+             FROM Calls t
+                  LEFT JOIN Person p ON t.caller_id = p.id
+                                     OR t.callee_id = p.id
+                  JOIN Country c ON LEFT(p.phone_number, 3) = c.country_code
+             )
+SELECT name country
+FROM sub
+WHERE global_avg < country_avg
