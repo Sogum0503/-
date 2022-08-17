@@ -1,3 +1,23 @@
+[1549#_MEDIUM] The Most Recent Orders for Each Product
+
+with temp as (
+    select product_name,
+           p.product_id,
+            order_id,
+            order_date,
+            dense_rank() over(partition by p.product_id order by order_date desc) as order_num 
+    from orders o 
+        join products p on o.product_id = p.product_id )
+
+select product_name
+        ,product_id
+        ,order_id
+        ,order_date
+from temp
+where order_num = 1 
+order by product_name, product_id, order_id
+
+---------------------------------------------------------------------------
 [185_HARD] Department Top Three Salaries
 
 with temp as (select d.name as Department, 
@@ -12,5 +32,6 @@ select Department,
         Salary 
 from temp 
 where salary_rnk <= 3
+---------------------------------------------------------------------------
 
 [262_HARD] Trips and Users
