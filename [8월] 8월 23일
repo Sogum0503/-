@@ -1,0 +1,37 @@
+곧 오는 처서매직에 선선한 날씨가 너무 좋았다. 
+
+[1699#_MEDIUM] Number of Calls Between Two Persons
+
+# 풀이 과정
+person1과 person2에는 to_id와 from_id가 모두 올 수 있다.
+하지만 문제에서 요구하는 조건은 person1 < person2여야하기 때문에 
+가상 테이블을 만들어서 해당 조건을 충족시키기로 함. 
+
+가상테이블 temp : 
+to_id를 person1, from_id를 person2라고 컬럼별칭을 지정해두고 조건절로 from_id가 to_id보다 큰 값인 값만 출력 
+to_id를 person2, from_id를 person1라고 컬럼별칭을 지정해두고 조건절로 to_id가 from_id보다 큰 값만 출력한 다음
+두 테이블을 union all로 합쳐줌.
+
+그렇게 생성된 가상테이블을 이용해서 해당 문제에서 요구하는 데이터를 출력한다. 
+
+# query 
+with temp as (
+    select to_id as person1,
+            from_id as person2,
+            duration
+    from calls 
+    where to_id < from_id 
+    union all 
+    select from_id as person1,
+            to_id as person2,
+            duration
+    from calls
+    where from_id < to_id )
+    
+select person1,
+        person2,
+        count(person1) as call_count,
+        sum(duration) as total_duration 
+from temp 
+group by person1, person2
+
