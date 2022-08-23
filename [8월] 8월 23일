@@ -14,7 +14,7 @@ to_id를 person2, from_id를 person1라고 컬럼별칭을 지정해두고 조�
 
 그렇게 생성된 가상테이블을 이용해서 해당 문제에서 요구하는 데이터를 출력한다. 
 
-# query 
+# 최종 쿼리  
 with temp as (
     select to_id as person1,
             from_id as person2,
@@ -35,3 +35,33 @@ select person1,
 from temp 
 group by person1, person2
 
+-------------------------------------------------------------
+
+[569#_HARD] Median Employee Salary
+
+# 풀이 과정 
+1. salary를 오름차순으로 정렬이 되어야 함. 그리고 각 salary에 값에 row_number로 번호표가 필요 
+2. 홀수 : company기준 count(*)%2 = 0 이라면 salary_rnk = count(*)/2번째 값과 salary_rnk = count(*)/2+1번째 값을 출력해야함
+   짝수 : company 기준 count(*)%2 !=0 이라면, salary_rnk = round(count(*)/2))번째 값을 출력해야함. 
+
+# 최종 쿼리 
+with f_cnt as(
+    select company
+        , count(*) as cnt 
+    from employee
+    group by company), 
+
+o_salary as (
+    select id,
+            company,
+            salary,
+            row_number() over(partition by company order by salary asc) as rnk
+    from employee)
+
+select id,
+    o.company as company,
+    salary 
+from o_salary o
+    join f_cnt f on o.company = f.company  
+where (cnt%2=0 and (rnk = cnt/2 or rnk = cnt/2+1)) 
+or (cnt%2 != 0 and rnk = round(cnt/2));
