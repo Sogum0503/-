@@ -1,1 +1,36 @@
 
+[1747#_MEDIUM] Leetflex Banned Accounts
+
+select a.account_id
+from loginfo a 
+    left join loginfo b on a.account_id = b.account_id 
+                        and a.ip_address != b.ip_address 
+                        and b.login between a.login and a.logout 
+where b.account_id is not null 
+group by 1
+
+---------------------------------------------------------------------
+[1783#_MEDIUM] Grand Slam Titles
+
+# 문제 해설
+1) union all을 이용해서 각 토너먼트별 우승한 아이디를 한 테이블,한 열로 합치는 작업을 진행 => temp 
+2) temp 테이블과 player 테이블을 inner join을 실행함(토너먼트에서 우승한 데이터만 필요하기 때문에 inner join해도 된다 생각함)
+3) 각 player_id별 토너먼트에서 우승한 횟수를 출력해야 하기 때문에 group by로 id와 name별로 그룹화를 진행하고 count(id 혹은 *)를 통해 우승 횟수를 출력함. 
+
+# 쿼리 
+with temp as (
+select wimbledon as id from championships 
+union all
+select Fr_open as id from championships 
+union all
+select US_open as id from championships 
+union all
+select Au_open as id from championships )
+
+select player_id,
+        player_name,
+        count(id) as grand_slams_count
+from players p
+    join temp t on p.player_id = t.id
+group by 1,2
+having grand_slams_count is not null -- 없어도 됨
