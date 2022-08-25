@@ -34,3 +34,38 @@ from players p
     join temp t on p.player_id = t.id
 group by 1,2
 having grand_slams_count is not null -- 없어도 됨
+
+-----------------------------------------------------------------------
+[1811#_MEDIUM] Find Interview Candidates -- 쿼리가 너무 지저분함. 더 쉽게 푸는 방법은? 
+
+- 3개 이상의 연속된 대회에서 메달을 획득
+- 3개 이상의 대회에서 금메달을 획득 (연속적이지 않아도 됨) 
+
+with temp as (
+    select gold_medal g1,
+            silver_medal s1,
+            bronze_medal b1,
+            lag(gold_medal,1) over(order by contest_id) g2,
+            lag(silver_medal,1) over(order by contest_id) s2,
+           lag(bronze_medal,1) over(order by contest_id) b2,
+            lag(gold_medal,2) over(order by contest_id) g3,
+            lag(silver_medal,2) over(order by contest_id) s3,
+            lag(bronze_medal,2) over(order by contest_id) b3
+    from contests)
+
+select distinct name, 
+        mail 
+from users u 
+    inner join temp t on u.user_id in (g1,s1,b1) 
+                    and u.user_id in (g2,s2,b2) 
+                    and u.user_id in (g3,s3,b3) -- 3개의 연속된 콘테스트에서 입상 
+                    
+union
+
+select u.name, 
+		u.mail 
+from Contests c
+	join Users u on c.gold_medal = u.user_id
+group by u.user_id
+having count(contest_id) >= 3 -- gold_medal 3개 이상 
+
