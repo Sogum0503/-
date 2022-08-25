@@ -63,7 +63,7 @@ from users u
 union
 
 select u.name, 
-		u.mail 
+	u.mail 
 from Contests c
 	join Users u on c.gold_medal = u.user_id
 group by u.user_id
