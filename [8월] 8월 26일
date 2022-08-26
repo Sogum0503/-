@@ -1,0 +1,41 @@
+[579#_HARD] Find Cumulative Salary of an Employee -- 어려움, 몇번 더 풀어봐야 함 
+
+with temp as (select id,
+            month,
+            salary,
+            ifnull(lag(month,2) over(partition by id order by month),0) as month2,
+            ifnull(lag(month,1) over(partition by id order by month),0) as month1,
+            ifnull(lag(salary,2) over(partition by id order by month),0) as salary2,
+            ifnull(lag(salary,1) over(partition by id order by month),0) as salary1 
+		from employee)
+
+select id, 
+	month,
+       case when (month1 = month - 1 and month2 = month - 2) then salary + salary1 + salary2  -- case 1  
+           when (month1 = month - 1 and month2 !=month - 2) then salary + salary1 -- case 2            
+        else salary
+        end as Salary 
+from temp
+where (id, month) not in (select id, max(month) from temp group by 1)
+order by id, month desc
+
+---------------------------------------------------------------------
+[601#_HARD] Human Traffic of Stadium
+
+with temp as(
+            select *,
+                    lag(id,1) over(order by visit_date) as day_b1,
+                    lag(id,2) over(order by visit_date) as day_b2,
+                    lead(id,1) over(order by visit_date) as day_a1,
+                    lead(id,2) over(order by visit_date) as day_a2
+            from stadium
+            where people >= 100 )
+
+select id,
+        visit_date,
+        people
+from temp 
+where (id-day_b1 = 1 and id-day_b2 = 2)
+or (id-day_b1 = 1 and id+1 = day_a1)
+or (id+1 = day_a1 and id+2 = day_a2)
+order by visit_date
