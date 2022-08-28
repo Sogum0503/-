@@ -1,1 +1,21 @@
+[1831#_MEDIUM] Maximum Transaction Each Day
 
+# 풀이 과정
+각 날짜에 여러개 max(amount)가 있으면 모두 출력하라고 했기 때문에 dense_rank를 사용
+day가 시분초 까지 지정되어 있기 때문에 date_format을 이용해서 year-month-day로 변환 작업 진행 
+partition을 변환된 day로 지정하고, amount가 높은 순에 rank값을 부여한 temp 테이블 생성
+
+temp 테이블을 활용해서 rnk가 1 값을 가지는 trancation_id를 출력 
+
+# 쿼리 
+with temp as (
+select *,
+        dense_rank() over(partition by date_format(day,'%y-%m-%d') order by amount desc) as rnk
+from transactions)
+
+select transaction_id
+from temp
+where rnk = 1 
+order by 1
+
+-----------------------------------------------------------------------------
