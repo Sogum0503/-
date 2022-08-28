@@ -1,1 +1,28 @@
+[1843#_MEDIUM] Suspicious Bank Accounts
+
+with temp as (
+    select account_id,
+            date_format(day,'%Y') as year,
+            date_format(day,'%m') as month,
+            sum(amount) as total_income
+    from transactions t
+    where type = 'Creditor'
+    group by 1,2,3),
+temp2 as (
+    select t.account_id,
+            total_income,
+            max_income,
+            year,
+            month,
+            row_number() over(partition by t.account_id order by year, month) as rnk 
+    from temp t 
+        join accounts a on t.account_id = a.account_id
+    where total_income > max_income)
+    
+select distinct t1.account_id
+from temp2 t1
+    join temp2 t2 on t1.account_id = t2.account_id
+                  and t2.rnk = t1.rnk+1 
+                  and ((t1.year = t2.year and t2.month = t1.month+1) or (t2.year = t1.year + 1 and t2.month = 1 and t1.month = 12 )) 
+
 
