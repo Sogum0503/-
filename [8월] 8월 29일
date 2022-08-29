@@ -1,3 +1,58 @@
 # MySQL에서의 사용자 정의함수에 대한 개념을 익힘 
 
 https://dev.mysql.com/doc/refman/8.0/en/user-variables.html
+
+--------------------------------------------------------------
+[618#_HARD] Students Report By Geography
+
+# 풀이 과정
+- case when만 사용하게 되면 아래와 같이 됨 
+
+''' 
+with temp as (
+select case when continent = 'America' then name end as America,
+       case when continent = 'Asia' then name end as Asia,
+       case when continent = 'Europe' then name end as Europe
+from  Student)
+
+["America", "Asia", "Europe"]
+["Jane", null, null] -- 여기서 한번 시작 (1번)
+[null, null, "Pascal"]
+[null, "Xi", null] -- 각 컬럼별 이름이 하나씩 들어오면 끊어야함  
+["Jack", null, null] --- 여기서 다시 시작해야함 (2번)
+'''
+
+- 이걸 합쳐주는 작업이 필요함 
+   - 어떻게 ??
+- 보면 각 컬럼에 이름이 하나씩 들어오게 되면 그걸 합쳐서 하나의 로우로 만들어야 함
+   - 그 다음 또한 같은 진행...
+- 그러면 america에서 첫 번째로 들어온 이름에 번호를 부과하고, 그 번호를 이용해서 group by를 해서 묶을 수 있지 않을까? 
+
+# 쿼리 
+with temp as (
+select case when continent = 'America' then name end as America,
+       case when continent = 'Asia' then name end as Asia,
+       case when continent = 'Europe' then name end as Europe,
+        row_number() over(partition by continent order by name) as rn
+from  Student)
+
+select max(America) as America,
+        max(Asia) as Asia,
+        max(Europe) as Europe
+from temp 
+group by rn
+
+# discussion most votes 
+
+SELECT MAX(America) AS America, MAX(Asia) as Asia, MAX(Europe) AS Europe
+FROM (
+	SELECT 
+        CASE WHEN continent = 'America' THEN @r1 := @r1 + 1 -- 누적됨, python 반복문에서 x += i 느낌인듯 
+             WHEN continent = 'Asia'    THEN @r2 := @r2 + 1 -- 즉 row_number과 동일한 기능인듯 
+             WHEN continent = 'Europe'  THEN @r3 := @r3 + 1 END row_id,
+        CASE WHEN continent = 'America' THEN name END America,
+        CASE WHEN continent = 'Asia'    THEN name END Asia,
+        CASE WHEN continent = 'Europe'  THEN name END Europe
+    FROM student, (SELECT @r1 := 0, @r2 := 0, @r3 := 0) tmp -- 변수 선언 
+    ORDER BY name) t
+GROUP BY row_id;
