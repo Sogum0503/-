@@ -25,4 +25,37 @@ from temp2 t1
                   and t2.rnk = t1.rnk+1 
                   and ((t1.year = t2.year and t2.month = t1.month+1) or (t2.year = t1.year + 1 and t2.month = 1 and t1.month = 12 )) 
 
+-----------------------------------------------------------------------------------------
+[615#_HARD] Average Salary: Departments VS Company
+
+# 풀이과정 
+1. 월별 부서의 평균 급여를 구해야함 
+2. 월별 회사 전체의 평균 급여를 구해야함
+3. 그 다음 이 둘을 비교하기 
+
+# 쿼리 
+with temp as(
+    select date_format(pay_date,'%Y-%m') as pay_month,
+            department_id,
+            avg(amount) as avg_dept
+    from Salary s 
+        join Employee e on s.employee_id = e.employee_id
+    group by 1,2),-- 부서별 평균 급여 구하기 
+
+    temp2 as(
+    select date_format(pay_date,'%Y-%m') as pay_month,
+            avg(amount) as avg_com
+    from Salary 
+    group by 1) -- 회사의 월별 평균 급여 구하기 
+
+select temp.pay_month,
+        temp.department_id,
+        case when avg_dept > avg_com then 'higher'
+            when avg_dept = avg_com then 'same'
+            when avg_dept < avg_com then 'lower' end as comparison
+from temp 
+    left join temp2 on temp.pay_month = temp2.pay_month
+    
+
+
 
