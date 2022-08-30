@@ -1,0 +1,24 @@
+[1875#_MEDIUM] Group Employees of the Same Salary
+
+# 풀이 과정 
+team_id를 구하기 위해서 salary값에 rank값을 부여하면 되겠구나 생각함.
+
+dense_rank를 먼저 하고 필터링 조건을 걸어주면 rank값이 연속적으로 이어지지 않음.
+그래서 공통인자인 salary를 기준으로 필터링(유니크한 값 제거)을 해서 temp 테이블을 생성함.
+(salary가 아닌 employee_id를 기준으로 잡았을 때 집계함수 때문에 2명이 아닌 1명만 출력되는 문제가 발생됨) 
+
+temp 테이블에 dense_rank 함수를 이용해서 team_id 부여. 
+
+# 최종쿼리 
+with temp as (
+    select *
+    from employees 
+    where salary in (select salary
+                        from employees
+                         group by salary
+                         having count(employee_id) > 1))
+
+select *,
+    dense_rank() over(order by salary) team_id 
+from temp 
+order by team_id, employee_id
