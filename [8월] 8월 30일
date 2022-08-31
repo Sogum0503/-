@@ -32,6 +32,7 @@ order by team_id, employee_id
 Category 컬럼에 "Low","Average","High" 문자 데이터를 생성하는 작업을 진행하고 
 각 카테고리에 해당되는 accounts를 count하여 accounts_count 컬럼을 만드는 것은 어떨까? ▼
 
+# 쿼리 
 SELECT "Low Salary" AS category,
         COUNT(case when income < 20000 then account_id end) as accounts_count
 FROM Accounts 
@@ -43,3 +44,45 @@ UNION
 SELECT "High Salary" AS category,
         COUNT(CASE WHEN income > 50000 THEN account_id END) as accounts_count
 FROM Accounts
+
+----------------------------------------------------------------------
+[1867#_MEDIUM] Orders With Maximum Quantity Above Average
+
+# 문제 풀이 
+
+처음 생각했을 때 
+imbalanced orders 의 조건 :
+maximum 주문 수량 > 전체 주문의 평균
+and maximum 주문 수량 > 개인의 주문 평균 수량 
+
+근데 이게 아니였다.
+
+문제를 자세히 보면 :
+An imbalanced order is one whose maximum quantity is strictly greater than the average quantity of every order (including itself).
+
+즉, 어떠한 order_id의 maximum quantity가 모든 order의 avg(quantity)보다 클 때 라는 뜻
+(자기 자신의 평균 주문 수량 또한 포함해서) == max(avg(quantity)) 가 되는거
+
+!= (max_quantity > avg(quantity) from ordersdetails      
+    and max_quantity  > avg(quantity) from ordersdetails group by order_id) 
+    
+그래서 여기서의 최종 조건과 필요한 데이터는 아래와 같다:
+imbalanced order :
+max_quantity > max(avg(quantity)) 
+
+필요한 정보 :
+- order_id별 avg(quantity)값 
+- order_id별 max(quantity)값 
+
+# 최종 쿼리
+with temp as (
+            select *,
+                    max(quantity) as max_quantity,
+                    sum(quantity)/count(product_id) as avg_quantity
+            from ordersdetails
+            group by 1 )
+
+select order_id
+from temp 
+where max_quantity > (select max(avg_quantity)
+                     from temp)
