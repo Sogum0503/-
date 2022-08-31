@@ -1,0 +1,94 @@
+[1097#_HARD] Game Play Analysis V
+
+# 풀이 과정
+rank 부여해서 첫 install 날짜 구하고, 이걸 활용해서 count(player_id)해서 installs 구하기.
+day1_retention은 lead로 다음날 날짜를 event_date 옆에 붙여두고, 만약 datediff(lead(event_date,1) - event_date ) = 1이면 
+그건 연속해서 접속을 했다 라는 것을 의미하니까 이 조건이 충족되면 player_id를 출력해서 결과를 뽑아오기 
+
+rank 함수를 이용해서 각 date마다 rank값을 부여함
+day1_retention을 구할 때 활용하기 위해 laed함수를 이용해서 next_date도 함께 출력
+
+첫 로그인 날짜 = install_date이기 때문에 
+date_rnk = 1인 데이터만 출력할 수 있도록 조건을 걸어주고,
+group by를 event_date로 해서 나머지 installs랑 day1_retention을 구하려고 함.
+
+# 최종 쿼리 
+WITH temp AS(
+        SELECT player_id,
+                event_date,
+                RANK() OVER(PARTITION BY player_id ORDER BY event_date ASC) AS date_rnk,
+                LEAD(event_date,1) OVER(PARTITION BY player_id ORDER BY event_date ASC) AS next_day
+        FROM Activity a)
+
+SELECT event_date as install_dt,
+    COUNT(player_id) AS installs,
+    ROUND(COUNT(CASE WHEN DATEDIFF(next_day,event_date) = 1 then player_id end)/COUNT(player_id),2) AS Day1_retention
+FROM temp 
+WHERE date_rnk = 1 
+GROUP BY event_date
+
+다른 풀이 방법 
+
+installs = 각 plyaer_id의 min(event_date)
+
+activity와 temp 테이블을 left join을 진행해서 각 id별 install_dt값을 옆에 붙여줌
+group by를 install_dt로 그룹화를 진행하고, 해당 날짜의 count(player_id)해서 installs를 출력
+day1_retention은 아까와 동일하게 event_date,install_dt = 1이면 player_id를 출력해서 연속되게 로그인한 player의 수를 count함.
+
+with installs as (
+select player_id, 
+        min(event_date) as install_dt
+from activity 
+group by 1 )
+
+select install_dt,
+        count(distinct a.player_id) as installs,
+        round(count(distinct case when datediff(event_date,install_dt)=1 then a.player_id end)/count(distinct a.player_id),2) as Day1_retention 
+from activity a
+    left join installs i on a.player_id = i.player_id 
+group by install_dt
+
+------------------------------------------------------
+
+[1127#_HARD] User Purchase Platform
+
+# 문제 풀이 
+어느 유저가 어느 날짜에 desktop이랑 mobile 둘 다 사용했으면 -- both
+어느 유저가 어느 날짜에 desktop만 사용했으면 --desktop
+어느 유저가 어느 날짜에 mobile만 사용했으면 -- mobile 
+
+사실 이 풀이는 과정이 많이 긺... 그래서 tistory 참고 하기
+https://qingmi-53.tistory.com/402?category=1095808
+
+# 최종 쿼리
+with temp as (
+select a.*,
+    case when a.platform = "mobile" and b.platform is null then "mobile"
+         when a.platform = "desktop" and b.platform is null then "desktop"
+    else "both" 
+    end as category 
+from spending a 
+    left join spending b on a.user_id = b.user_id 
+    and a.platform != b.platform
+    and a.spend_date = b.spend_date
+    ),
+    
+temp2 as (
+    select distinct spend_date, 'desktop' platform 
+    from spending
+    union
+    select distinct spend_date, 'mobile' platform 
+    from spending 
+    union
+    select distinct spend_date, 'both' platform
+    from spending
+    )
+
+select t2.spend_date as spend_date,
+        t2.platform as platform,
+        sum(ifnull(t1.amount,0)) as total_amount,
+        count(distinct t1.user_id) as total_users
+from temp2 t2 
+    left join temp t1 on t2.spend_date = t1.spend_date 
+                    and t2.platform = t1.category 
+group by spend_date, platform
