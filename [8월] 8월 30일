@@ -22,3 +22,24 @@ select *,
     dense_rank() over(order by salary) team_id 
 from temp 
 order by team_id, employee_id
+
+----------------------------------------------------------------------
+[1907#_MEDIUM] Count Salary Categories
+
+# 문제 풀이 
+조건문을 사용한 다음, group by로 집계를 하게 되면 count(*) = 0인 category는 집계되지 않는 문제가 발생했다.
+아웃풋 형태를 보면 category 컬럼에는 "Low","Average","High"가 나열되어 있기 때문에 
+Category 컬럼에 "Low","Average","High" 문자 데이터를 생성하는 작업을 진행하고 
+각 카테고리에 해당되는 accounts를 count하여 accounts_count 컬럼을 만드는 것은 어떨까? ▼
+
+SELECT "Low Salary" AS category,
+        COUNT(case when income < 20000 then account_id end) as accounts_count
+FROM Accounts 
+UNION
+SELECT "Average Salary" AS category,
+        COUNT(CASE WHEN income BETWEEN 20000 AND 50000 THEN account_id END) as accounts_count
+FROM Accounts 
+UNION
+SELECT "High Salary" AS category,
+        COUNT(CASE WHEN income > 50000 THEN account_id END) as accounts_count
+FROM Accounts
