@@ -1,0 +1,87 @@
+
+# Yammer Search function 
+
+-- engagement를 발생시킨 유저 수 중에서 search 기능을 사용 한, 사용하지 않은 유저의 수 찾기 
+with temp as(
+SELECT user_id,
+      occurred_at,
+      event_name
+FROM tutorial.yammer_events e
+WHERE e.event_type = 'engagement'
+order by user_id, occurred_at)
+
+, temp_yes as (
+select user_id,
+      count(event_name) as all_event,
+      sum(case when event_name like 'search%' then 1 else 0 end) as using_search_function,
+      count(case when event_name not like 'search%' then user_id else null end) as not_using_search_function
+from temp
+group by user_id
+having sum(case when event_name like 'search%' then 1 else 0 end) != 0)
+, temp_all as (
+select user_id,
+      count(event_name) as all_event,
+      sum(case when event_name like 'search%' then 1 else 0 end) as using_search_function,
+      count(case when event_name not like 'search%' then user_id else null end) as not_using_search_function
+from temp
+group by user_id)
+
+select count(*) as all_users,
+      (select count(*) from temp_yes) as using_search_function_users,
+      100*(select count(*) from temp_yes)::decimal/count(*)::decimal as fenbi
+from temp_all
+
+-- 전체 세션 대비 서치 기능 사용한 세션의 비율 
+with temp as (
+SELECT user_id
+     , session
+     , MIN(occurred_at) AS session_start
+     , MAX(occurred_at) AS session_end
+ FROM (
+      SELECT bounds.*
+      		 , CASE WHEN last_event >= INTERVAL '10 MINUTE' THEN id
+      		        WHEN last_event IS NULL THEN id
+      		        ELSE LAG(id, 1) OVER (PARTITION BY user_id ORDER BY id) END AS session
+      FROM (
+            SELECT user_id
+                 , event_type
+                 , event_name
+                 , occurred_at
+                 , occurred_at - LAG(occurred_at, 1) OVER (PARTITION BY user_id ORDER BY occurred_at) AS last_event
+                 , LEAD(occurred_at, 1) OVER (PARTITION BY user_id ORDER BY occurred_at) - occurred_at AS next_event
+                 , ROW_NUMBER() OVER () AS id
+            FROM tutorial.yammer_events e
+            WHERE e.event_type = 'engagement'
+            ORDER BY user_id,occurred_at
+            ) bounds
+      WHERE last_event >= INTERVAL '10 MINUTE'
+      OR next_event >= INTERVAL '10 MINUTE'
+      OR last_event IS NULL
+      OR next_event IS NULL   
+      ) final
+GROUP BY 1, 2),
+temp2 as (
+select e.*,
+      t.session,
+      t.session_start 
+from tutorial.yammer_events e
+    left join temp t on e.user_id = t.user_id
+        and e.occurred_at >= t.session_start 
+        and e.occurred_at <= t.session_end
+where e.event_type = 'engagement'),
+temp3 as (
+select t.session_start,
+      t.session,
+      t.user_id,
+      count(case when t.event_name = 'search_autocomplete' then t.user_id else null end) as autocompletes,
+      count(case when t.event_name = 'search_run' then t.user_id else null end) as runs,
+      count(case when t.event_name like 'search_click%' then t.user_id else null end) clicks
+from temp2 t
+group by 1,2,3)
+
+select count(*) as sessions 
+      ,count(case when t.autocompletes > 0 then t.session else null end) as with_autocomplete
+      ,count(case when t.runs > 0 then t.session else null end) as with_runs 
+      ,round(count(case when t.autocompletes > 0 then t.session else null end)::decimal/count(*)::decimal,2) as pc_autocomplete
+      ,round(count(case when t.runs>0 then t.session else null end)::decimal /count(*)::decimal,2) as pc_runs
+from temp3 t
