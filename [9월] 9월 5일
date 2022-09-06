@@ -1,1 +1,52 @@
 
+[1990#_MEDIUM] Count the Number of Experiments
+
+# 풀이 과정 
+output 테이블을 보면 platform과 experiment_name로 group by를 한 다음 count(x)를 해서 num_experiment 값을 도출한 것과 같은 형태인걸 알 수 있음. 
+그런데 현재 가지고 있는 experiments 테이블을 그대로 사용하게 된다면 특정 platform/ experiment_name의 값이 없는 데이터가 있어 0값이 도출되지 않는 문제가 발생함.
+
+해당 문제는 저번에 풀었던  [1907#_MEDIUM] Count Salary Categories 과 로직이 비슷하다는 것을 알 수 있음.
+
+그래서 나의 로직은...
+
+1) group by 한 다음 집계함수를 썼을 때 ifnull(x,0)를 통해 0값을 할당할 수 있도록 미리 틀을 짜줌  temp -- (platform, experiment_name) 
+2) 해당 temp 테이블에 experiments 테이블을 left join을 해준다. (기준 컬럼 : platform and experiment_name)
+
+
+# 최종 쿼리 
+with platform as (
+select 'Android' as platform
+union
+select 'IOS' as platform
+union
+select 'Web' as platform),
+name as (
+select 'Reading' as experiment_name
+union
+select 'Sports' as experiment_name
+union
+select 'Programming' as experiment_name),
+temp as (
+select * 
+from platform 
+    cross join name)
+
+select t.platform,
+        t.experiment_name,
+        ifnull(count(e.experiment_id),0) as num_experiments 
+from temp t 
+    left join experiments e on t.platform = e.platform 
+                            and t.experiment_name = e.experiment_name 
+group by 1,2
+
+----------------------------------------------------------------------
+[2020#_MEDIUM] Number of Accounts That Did Not Stream
+
+# 최종쿼리 
+select count(session_id) as accounts_count 
+from streams 
+where account_id in (select account_id
+                        from subscriptions 
+                        where date_format(start_date,'%Y')='2021'
+                            or date_format(end_date,'%Y')='2021')
+and date_format(stream_date,'%Y') = '2020'
