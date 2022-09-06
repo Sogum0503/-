@@ -18,3 +18,28 @@ select user_id,
         round(sum(cnt)/count(user_id),2) as confirmation_rate
 from temp
 group by user_id
+
+[1949#_MEDIUM] Strong Friendship
+# 문제 풀이
+결국은 discussion봄
+
+# 최종 쿼리 
+with temp as (
+select user1_id as friend,
+      user2_id as friendwith 
+from friendship 
+union
+select user2_id as friend,
+        user1_id as friendwith
+from friendship 
+)
+
+select f.user1_id,
+        f.user2_id,
+        count(*) as common_friend
+from friendship f 
+    join temp t1 on f.user1_id = t1.friend 
+    join temp t2 on f.user2_id = t2.friend 
+    and t1.friendwith = t2.friendwith 
+group by 1,2
+having count(*) >= 3
