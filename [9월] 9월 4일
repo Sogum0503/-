@@ -2,3 +2,32 @@
 - 9월 18일 대면 스터디 진행 
 - 퍼널 EDA와 계획 완료 
 - RFM 마무리 진행 
+
+# 리트코드 
+
+[1951#_MEDIUM] All the Pairs With the Maximum Number of Common Followers
+# 문제 풀이 
+user 1의 follower (3,4)
+user 2의 follower (3,4)
+
+근데 페어를 찾아야 하기 때문에 우선은 self-join을 진행해야 한다. 
+근데 user1_id < user2_id란 조건이 있기 때문에 해당 조건을 추가하고,
+공통되는 팔로워를 찾아야 하기 때문에 r1.follower_id = r2.follower_id라는 조건을 추가한다.
+
+그 다음 maxCommon Followers를 찾아야 하기 대문에 dense_rank를 사용해서 count(r1.follower_id)를 내림차순으로 랭크를 매겨주기(근데 여기서 count를 써야하기 때문에 group by에 나머지 컬럼을 넣어줘야 한다.) 
+이렇게 temp 테이블이 완성 됐으면, 해당 테이블을 이용해서 필요한 정보를 추출하면 됨. 
+
+# 최종 쿼리 
+with temp as (
+    select r1.user_id as user1_id,
+            r2.user_id as user2_id,
+            dense_rank() over(order by count(r1.follower_id) desc) as rnk
+    from relations r1 
+        cross join relations r2 on r1.user_id < r2.user_id 
+                                and r1.follower_id = r2.follower_id
+    group by user1_id, user2_id)
+
+select user1_id,
+        user2_id
+from temp 
+where rnk = 1
