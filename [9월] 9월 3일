@@ -1,1 +1,20 @@
+[1934#_MEDIUM] Confirmation Rate
 
+# 문제 풀이 
+signups 테이블을 기준으로 user_id를 이용해서 confirmations 테이블을 left join한다.
+그 다음 user_id와 case문을 이용해서 confirmed 된 메시지를 확인하는 temp 테이블을 생성 
+
+temp 테이블을 이용해서 confirmation rate를 구함count(id) = 총 요청된 확인 메시지의 수 sum(cnt)의 값 = 확인 된 메시지의 수  
+
+# 최종 쿼리 
+with temp as (
+    select s.user_id, 
+            case when c.action='confirmed' then 1 else 0 end as cnt 
+    from Signups s
+        left join Confirmations c on s.user_id=c.user_id
+)
+
+select user_id, 
+        round(sum(cnt)/count(user_id),2) as confirmation_rate
+from temp
+group by user_id
