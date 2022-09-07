@@ -88,3 +88,9 @@ with temp as(
 select group_id, player_id
 from temp3
 where rnk=1
+
+-------------------------------------------------------------------------- 뭐지? 깃이 멈췄다 
+[1225#_HARD] Report Contiguous Dates
+
+# 풀이가 길어서 블로그 참고하기 
+https://qingmi-53.tistory.com/413
