@@ -1,0 +1,90 @@
+[1159#_HARD] Market Analysis II
+
+# 풀이과정 
+-- temp
+각 user가 판매한 두 번째 항목의 브랜드 = 해당 user가 가장 좋아하는 브랜드인가? 를 묻는 문제.
+두 번재 항목의 브랜드를 찾기 위해서 row_number을 통해서 각 항에 rnk값을 부과함. 
+
+-- temp1 
+그 다음 필요한 데이터를 출력하기 위해 각 테이블들을 join을 하는 작업을 추가로 거침
+그리고 나서 두 번째 항목을 찾기 위해 where절에 rnk = 2을 통해 필터링을 함. 
+그 다음 item_brand가 favorite_brand면 yes를 출력하고 아니면 no를 출력하는 조건문을 걸어줌 
+
+근데 여기까지 하면 seller_id 1번이 나오지 않음 (판매 아이템이 없는 유저임) 
+동일하게 틀이 필요한 상황임. 
+
+-- 최종 쿼리
+새로 틀을 만들기는 너무 귀찮기 때문에 기존에 있던 users 테이블의 틀을 빌려옴. 
+left join을 하고, user_id = 1같은 경우는 seller_id가 없기 때문에 2nd_item_fav_brand가 null값이 도출될거임 
+이런 경우는 "no"로 처리해라 했기 때문에 coalesce 혹은 ifnull로 처리를 해줌 
+
+# 쿼리 
+with temp as(
+    select order_id,
+            item_id,
+            seller_id,
+            row_number() over(partition by seller_id order by order_date) as rnk 
+    from orders ),
+    temp1 as (
+    select t.seller_id as seller_id,
+            case when item_brand = favorite_brand then "yes" Else "no" end as 2nd_item_fav_brand 
+    from users u 
+        left join temp t on u.user_id = t.seller_id 
+        left join items i on t.item_id = i.item_id
+    where rnk = 2)
+    
+
+select u.user_id as seller_id,
+        ifnull(2nd_item_fav_brand,"no") 2nd_item_fav_brand
+from users u 
+    left join temp1 t on u.user_id = t.seller_id
+--------------------------------------------------------------
+
+[1194#_HARD] Tournament Winners
+
+# 풀이 과정 
+이건 어떻게 풀어야하나...? 이제껏 풀었던거 생각해보자면... 
+first_player이랑 second_player을 player_id로 합치는 모양으로 
+union all 한 다음 groupby 하는 식으로 해야할까? 
+
+우선 이 로직으로 풀어보자..
+
+--- temp 
+player_id은 first_player이 될 수도 있고 second_player이 될 수도 있음. score도 마찬가지
+그렇기 때문에 추후에 있을 집계를 위해 우선은 player_id와 score로 컬럼을 통일 시키기 위해 union all을 해줘서 하나의 가상 테이블을 만들기
+
+-- temp2 
+각 팀에서 가장 많은 score을 받은 player_id를 뽑아야 하기 때문에
+group by에 player_id와 group_id를 두고 sum(score)을 하기
+
+-- temp3
+각 group에서 가장 많은 score을 획득한 player_id를 추출해야 하는데, 만약 동점이라면 min(player_id)값을 선택해야 하기 때문에 rank() 함수를 사용해서 해당 조건을 만족하는 rnk값을 부여함 .
+
+-- 최종 
+rnk=1인 group_id와 player_id를 추출하기 
+
+# 쿼리 
+with temp as(
+    select first_player as player_id, 
+            first_score as score 
+    from matches 
+    union all
+    select second_player as player_id,
+            second_score as score 
+    from matches),
+    temp2 as(
+    select p.player_id,
+            p.group_id,
+            sum(t.score) as sum_score
+    from players p
+        left join temp t on p.player_id = t.player_id
+    group by 1,2),
+    temp3 as(
+    select player_id,
+            group_id,
+        rank() over(partition by group_id order by sum_score desc, player_id asc) as rnk 
+    from temp2)
+    
+select group_id, player_id
+from temp3
+where rnk=1
